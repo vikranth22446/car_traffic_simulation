@@ -40,8 +40,9 @@ func main() {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	//r.Get("/", )
 	addRoutes(r)
+	go RunSimulation()
+
 	fmt.Printf("Starting serve at http://localhost:%v\n", 80)
 	http.ListenAndServe(":80", r)
 }

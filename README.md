@@ -5,7 +5,8 @@ Install golang using https://golang.org/doc/install
 ```
 go get
 ```
-## Installing Air
+Can quickly run the code using `make` to get it to start
+## Installing Air for Hot Reload
 Air allows for hot reload of code
 ### macOS
 ```sh
