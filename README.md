@@ -32,3 +32,14 @@ The command air will build the code and run it.
 ```
 air
 ```
+
+# Running the Frontend
+
+## Installing the deps
+Run `yarn install` inside the frontend directory
+
+## Running the code with live reload
+Open a tab and run `yarn start` to have it live reload
+
+## Production deploy
+Deploy for production via `yarn build`
