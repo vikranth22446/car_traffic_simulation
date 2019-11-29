@@ -1,3 +1,3 @@
 run:
-	go build . && ./ee126_car_simulation
+	go build *.go && ./ee126_car_simulation
 hotreload:

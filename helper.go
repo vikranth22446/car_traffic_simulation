@@ -6,7 +6,8 @@ import (
 	"net/http"
 )
 
-func catch(err error) {
+func Catch(err error) {
+	//fmt.Printf("err")
 	if err != nil {
 		panic(err)
 	}
