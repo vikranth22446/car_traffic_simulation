@@ -1,6 +1,7 @@
 package main;
 
 import (
+	"github.com/google/uuid"
 	"math/rand"
 	"time"
 )
@@ -15,7 +16,7 @@ import (
 //)
 
 type Car struct {
-	id      int
+	id      uuid.UUID
 	speed   float64
 	lanePos int
 	lane    *Lane
@@ -27,7 +28,7 @@ type Lane struct {
 }
 
 type Location struct {
-	Cars map[int]Car // Allows for easy removal of the car
+	Cars map[uuid.UUID]*Car // Allows for easy removal of the car
 }
 
 func UniformRand() float64 {
@@ -37,13 +38,14 @@ func UniformRand() float64 {
 
 	return rnd*(max-min) + min
 }
+
 func moveCarsThroughBins(lane *Lane, movementChan chan Lane, start bool) {
 	var location Location
 
 	if start {
 		location = (lane.Locations)[0]
 	} else {
-		location = lane.Locations[len(lane.Locations)-1]
+		location = lane.Locations[len(lane.Locations)-2]
 	}
 
 	for {
@@ -62,27 +64,40 @@ func moveCarsThroughBins(lane *Lane, movementChan chan Lane, start bool) {
 
 func MoveCarInLane(car *Car, movementChan chan Car) {
 	p := 0.5
-	for {
-		movementTime := rand.ExpFloat64() / car.speed
-		select {
-		case <-time.After(time.Duration(movementTime) * time.Second):
-			if UniformRand() < p {
-				movementChan <- *car
-			}
-			break
+	movementTime := rand.ExpFloat64() / car.speed
+	select {
+	case <-time.After(time.Duration(movementTime) * time.Second):
+		if UniformRand() < p {
+			movementChan <- *car
 		}
+		return
 	}
+}
+func getCarFromLocation(location *Location) (*Car) {
+	var currCar *Car
+	for k, v := range location.Cars {
+		delete(location.Cars, k)
+		currCar = v
+		break
+	}
+	return currCar
 }
 
 func RunSimulation() {
 	sizeOfLane := 10
 	//numCarsLane1 := 10
-	lane1 := make([]Location, sizeOfLane)
 	//cars := make([]Car, numCarsLane1)
 	//lane1[0].Cars = cars
+	//carPool := make([]Car, 0)
 
 	lane := Lane{
-		Locations: lane1,
+		Locations: make([]Location, sizeOfLane),
+	}
+
+	for i := 0; i <= sizeOfLane; i++ {
+		lane.Locations[i].Cars = make(map[uuid.UUID]*Car, 0)
+		carUUID := uuid.New()
+		lane.Locations[0].Cars[carUUID] = &Car{id: carUUID, lane: &lane, lanePos: 0}
 	}
 
 	moveCarsInLane := make(chan Lane)
@@ -96,19 +111,40 @@ func RunSimulation() {
 	for {
 		select {
 		case inBin := <-moveCarsInLane:
-			// TODO randomly select a car and move it to the next position
-			println("car is ready to move out of ", inBin)
-			// Item from lane x attempts to move in
+			var firstLoc = inBin.Locations[0]
+			var secondLoc = inBin.Locations[1]
+			if len(firstLoc.Cars) == 0 {
+				break
+			}
+			// next spot isn't free
+			if len(secondLoc.Cars) != 0 {
+				break
+			}
+			currCar := getCarFromLocation(&firstLoc)
+			currCar.lanePos = 1
+			secondLoc.Cars[currCar.id] = currCar
+			go MoveCarInLane(currCar, carClock)
 			break
 		case car := <-carClock:
-			// TODO check if car in the next position or not
-			// TODO call the function again for the car after increment pos if not end
-			// TODO if last position ignore
-			println("car is ready to move to the next pos", car)
+			if car.lanePos == car.lane.sizeOfLane-1 {
+				break // last position do nothing
+			}
+			var nextLoc = car.lane.Locations[car.lanePos+1]
+			if len(nextLoc.Cars) != 0 {
+				break
+			}
+			currCar := getCarFromLocation(&nextLoc)
+			currCar.lanePos += 1
+			go MoveCarInLane(currCar, carClock)
 			break
 		case outBin := <-moveCarsEndLane:
-			// TODO Move car from second to last to last lane
-			println("car is ready to move out of ", outBin)
+			var secondToLastLoc = outBin.Locations[len(outBin.Locations)-2]
+			var lastLoc = outBin.Locations[len(outBin.Locations)-1]
+			if len(secondToLastLoc.Cars) == 0 {
+				break
+			}
+			currCar := getCarFromLocation(&secondToLastLoc)
+			lastLoc.Cars[currCar.id] = currCar
 			break
 		}
 
