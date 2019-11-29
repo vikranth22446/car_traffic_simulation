@@ -7,6 +7,8 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"html/template"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 var port int
@@ -14,14 +16,17 @@ var port int
 func index(w http.ResponseWriter, r *http.Request) {
 	//w.Write([]byte("welcome"))
 	t, err := template.ParseFiles("templates/index.html")
-	Catch(err)
+	HandleErr(err)
 
 	t.Execute(w, nil)
 }
 
 func addRoutes(router *chi.Mux) *chi.Mux {
+	workDir, err := os.Getwd()
+	HandleErr(err)
+
+	FileServer(router, "/static", http.Dir(filepath.Join(workDir, "static")))
 	router.Get("/", index)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./public"))))
 
 	return router
 }
