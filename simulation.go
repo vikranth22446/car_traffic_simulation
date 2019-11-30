@@ -6,20 +6,19 @@ import (
 	"time"
 )
 
-//type State int
-//
-//const (
-//	Goal State = iota
-//	East
-//	South
-//	West
-//)
-
 type Car struct {
 	id      uuid.UUID
 	speed   float64
 	lanePos int
 	lane    *Lane
+}
+
+type Simulation struct {
+	lane            Lane
+	moveCarsInLane  chan Lane
+	carClock        chan Car
+	moveCarsEndLane chan Lane
+	closeSimulation chan bool
 }
 
 type Lane struct {
@@ -83,16 +82,13 @@ func getCarFromLocation(location *Location) (*Car) {
 	return currCar
 }
 
-func RunSimulation() {
-	sizeOfLane := 10
-	//numCarsLane1 := 10
-	//cars := make([]Car, numCarsLane1)
-	//lane1[0].Cars = cars
-	//carPool := make([]Car, 0)
+func initSimulation(sizeOfLane int) *Simulation {
+	simulation := Simulation{}
 
 	lane := Lane{
 		Locations: make([]Location, sizeOfLane),
 	}
+	simulation.lane = lane
 
 	for i := 0; i <= sizeOfLane; i++ {
 		lane.Locations[i].Cars = make(map[uuid.UUID]*Car, 0)
@@ -100,15 +96,26 @@ func RunSimulation() {
 		lane.Locations[0].Cars[carUUID] = &Car{id: carUUID, lane: &lane, lanePos: 0}
 	}
 
-	moveCarsInLane := make(chan Lane)
-	carClock := make(chan Car)
-	moveCarsEndLane := make(chan Lane)
+	simulation.moveCarsInLane = make(chan Lane)
+	simulation.carClock = make(chan Car)
+	simulation.moveCarsEndLane = make(chan Lane)
+	simulation.closeSimulation = make(chan bool)
+	return &simulation
+}
 
+func RunSimulation(simulation *Simulation) {
+	lane := simulation.lane
+	moveCarsInLane := simulation.moveCarsInLane
+	moveCarsEndLane := simulation.moveCarsEndLane
+	carClock := simulation.carClock
+	closeSimulation := simulation.closeSimulation
 	go moveCarsThroughBins(&lane, moveCarsInLane, true)
 	go moveCarsThroughBins(&lane, moveCarsEndLane, false)
 	//go MoveCarInLane(lane, moveCarsEndLane)
 
 	for {
+		// TODO handle case where everything is complete
+
 		select {
 		case inBin := <-moveCarsInLane:
 			var firstLoc = inBin.Locations[0]
@@ -146,13 +153,9 @@ func RunSimulation() {
 			currCar := getCarFromLocation(&secondToLastLoc)
 			lastLoc.Cars[currCar.id] = currCar
 			break
+		case <-closeSimulation:
+			return
 		}
 
 	}
-
-	//lanes := make([][]Car, 5)
-	//for i := range a {
-	//	a[i] = make([]Car, 5)
-	//}
-	//fmt.Printf("Variables %v", numCarsLeft, numHorizontalLanes)
 }
