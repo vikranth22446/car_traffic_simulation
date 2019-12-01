@@ -23,6 +23,14 @@ func commands(app *cli.App) {
 				runServer()
 			},
 		},
+		{
+			Name:    "run-terminal-simulation",
+			Aliases: []string{"t"},
+			Usage:   "Can run the simulation as terminal printouts",
+			Action: func(c *cli.Context) {
+				RunTerminalSimulation(true)
+			},
+		},
 	}
 }
 
