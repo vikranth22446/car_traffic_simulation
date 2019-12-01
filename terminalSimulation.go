@@ -6,10 +6,10 @@ import (
 )
 
 func RunTerminalSimulation(action bool) {
-	simulation := initSimulation(10)
+	simulation := initSingleLaneSimulation(10)
 	simulation.runningSimulation = true
 
-	go RunSimulation(simulation)
+	go RunSingleLaneSimulation(simulation)
 	if action {
 		for {
 			if !simulation.runningSimulation {

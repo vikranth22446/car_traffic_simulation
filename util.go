@@ -46,3 +46,11 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		fs.ServeHTTP(w, r)
 	}))
 }
+
+func UniformRand() float64 {
+	rnd := rand.Float64()
+	max := 1.0
+	min := 0.0
+
+	return rnd*(max-min) + min
+}
