@@ -50,7 +50,8 @@ export default class Socket {
     message(e) {
         try {
             const message = JSON.parse(e.data); // Sends a message to local client
-            this.ee.emit(message.name, message.data);
+            console.log("message received", message);
+            this.ee.emit(message.event, message.data);
         }
         catch (err) {
             this.ee.emit('error', err);

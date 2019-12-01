@@ -8,7 +8,10 @@ function App() {
 
     return (
         <div className="App">
-            <div className="title">EE126 Simulation</div>
+            <div className="Card title">
+                <div className={"titleText"}>EE126 Simulation</div>
+                <img className="titleLogo" src={"/static/ee126_logo.png"}/>
+            </div>
             <SimulationHandler/>
         </div>
     );

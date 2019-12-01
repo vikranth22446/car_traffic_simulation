@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import useForm from "react-hook-form/dist/useForm";
+import useForm from "react-hook-form";
+import Socket from "./socket";
 
 function SimulationForm(props) {
     const {register, handleSubmit} = useForm({
@@ -69,7 +70,8 @@ class SimulationHandler extends Component {
     };
 
     receiveIdentification = (data) => {
-        this.setState({clientId: data.clientId})
+        console.log("Identification recieved", data);
+        this.setState({clientId: data})
     };
     // helloFromClient is an event emitter that sends a hello message to the backend
     //    server on the socket.

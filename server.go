@@ -65,8 +65,8 @@ var upgrader = &websocket.Upgrader{
 func addRoutes(router *chi.Mux) *chi.Mux {
 	workDir, err := os.Getwd()
 	HandleErr(err)
-
-	FileServer(router, "/static", http.Dir(filepath.Join(workDir, "public/build")))
+	fmt.Println(http.Dir(filepath.Join(workDir, "frontend", "public", "build")))
+	FileServer(router, "/static", http.Dir(filepath.Join(workDir, "frontend", "public")))
 	router.Get("/", index)
 	router.HandleFunc("/ws", wsHandler)
 	return router

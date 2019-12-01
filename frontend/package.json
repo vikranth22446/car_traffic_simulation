@@ -1,61 +1,61 @@
 {
-  "name": "init",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-	"connect-multiparty": "^2.2.0",
-	"formidable": "^1.2.1",
-	"react": "^16.12.0",
-	"react-dom": "^0.14.0 || ^15.0.0 || ^16",
-	"react-hook-form": "^3.28.10",
-	"react-markdown": "^4.2.2",
-	"react-modal": "^3.10.1"
-  },
-  "devDependencies": {
-	"parcel": "latest",
-	"@babel/core": "^7.4.3",
-	"@babel/plugin-proposal-class-properties": "^7.4.0",
-	"@babel/preset-env": "^7.4.3",
-	"babel-preset-react-app": "7",
-	"prettier-eslint": "^8.8.2",
-	"typescript": "^3.5.1"
-  },
-  "scripts": {
-	"start": "parcel watch src/index.js -d public/build",
-	"build": "parcel build src/index.js -d public/build"
-  },
-  "eslintConfig": {
-	"extends": "react-app"
-  },
-  "browserslist": {
-	"production": [
-	  ">0.2%",
-	  "not dead",
-	  "not op_mini all"
-	],
-	"development": [
-	  "last 1 chrome version",
-	  "last 1 firefox version",
-	  "last 1 safari version"
-	]
-  },
-  "babel": {
-	"presets": [
-	  [
-		"@babel/preset-env",
-		{
-		  "useBuiltIns": "entry"
-		}
-	  ],
-	  [
-		"babel-preset-react-app",
-		{
-		  "absoluteRuntime": false
-		}
-	  ]
-	],
-	"plugins": [
-	  "@babel/proposal-class-properties"
-	]
-  }
+	"name": "init",
+	"version": "0.1.0",
+	"private": true,
+	"dependencies": {
+		"connect-multiparty": "^2.2.0",
+		"formidable": "^1.2.1",
+		"react": "^16.12.0",
+		"react-dom": "^0.14.0 || ^15.0.0 || ^16",
+		"react-hook-form": "^3.28.10",
+		"react-markdown": "^4.2.2",
+		"react-modal": "^3.10.1"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.4.3",
+		"@babel/plugin-proposal-class-properties": "^7.4.0",
+		"@babel/preset-env": "^7.4.3",
+		"babel-preset-react-app": "7",
+		"parcel": "latest",
+		"prettier-eslint": "^8.8.2",
+		"typescript": "^3.5.1"
+	},
+	"scripts": {
+		"start": "parcel watch src/index.js -d public/build",
+		"build": "parcel build src/index.js -d public/build"
+	},
+	"eslintConfig": {
+		"extends": "react-app"
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	},
+	"babel": {
+		"presets": [
+			[
+				"@babel/preset-env",
+				{
+					"useBuiltIns": "entry"
+				}
+			],
+			[
+				"babel-preset-react-app",
+				{
+					"absoluteRuntime": false
+				}
+			]
+		],
+		"plugins": [
+			"@babel/proposal-class-properties"
+		]
+	}
 }

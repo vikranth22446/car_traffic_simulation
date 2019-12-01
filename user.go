@@ -30,7 +30,6 @@ type User struct {
 
 type Message struct {
 	Event string      `json:"event"`
-	Id    string      `json:"id"`
 	Data  interface{} `json:"data"`
 }
 type Handler func(*websocket.Conn, interface{})
@@ -69,7 +68,7 @@ func (self *User) Is(other *User) bool {
 }
 
 func (self *User) identify() (error) {
-	message := Message{Event: identify, Id: self.Id.String()}
+	message := Message{Event: identify, Data: self.Id.String()}
 	marshalledMessage, err := json.Marshal(message)
 	if err != nil {
 		return err
