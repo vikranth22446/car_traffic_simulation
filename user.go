@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -26,6 +27,13 @@ type User struct {
 	simulationRunning bool
 	simulation        *Simulation
 }
+
+type Message struct {
+	Event string      `json:"event"`
+	Id    string      `json:"id"`
+	Data  interface{} `json:"data"`
+}
+type Handler func(*websocket.Conn, interface{})
 
 func newUser(ws *websocket.Conn) *User {
 	self := &User{}
@@ -61,7 +69,12 @@ func (self *User) Is(other *User) bool {
 }
 
 func (self *User) identify() {
-	self.write(identFn(self.Id))
+	message := Message{Event: "identify", Id: self.Id.String()}
+	marshalledMessage, err := json.Marshal(message)
+	if err != nil {
+		// TODO handle marshall err
+	}
+	self.write(marshalledMessage)
 }
 
 func (self *User) runSimulation() {
@@ -111,16 +124,21 @@ func (self *User) update() {
 
 // Below this is to handle reading and sending message from websockets
 func (self *User) reader() {
-
+	var msg Message
 	for {
-		_, message, err := self.ws.ReadMessage()
-		if err != nil {
+		// read incoming message from socket
+		if err := self.ws.ReadJSON(&msg); err != nil {
+			log.Printf("socket read error: %v\n", err)
 			break
 		}
-		//json.Unmarshal(message, self.control)
-
 		if playerShowLog == true {
-			log.Printf("%s -> %s\n", self.ws.RemoteAddr(), message)
+			log.Printf("%s -> %s\n", self.ws.RemoteAddr(), msg.Event)
+		}
+
+		// assign message to a function handler
+		if handler, found := self.group.FindHandler(msg.Event); found {
+			// send msg.id
+			handler(self.ws, msg.Data)
 		}
 	}
 

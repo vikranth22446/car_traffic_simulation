@@ -15,17 +15,19 @@ require (
 	github.com/gonum/mathext v0.0.0-20181121095525-8a4bf007ea55 // indirect
 	github.com/gonum/matrix v0.0.0-20181209220409-c518dec07be9 // indirect
 	github.com/gonum/stat v0.0.0-20181125101827-41a0da705a5b // indirect
-	github.com/google/uuid v1.1.1 // indirect
-	github.com/gorilla/websocket v1.4.1 // indirect
+	github.com/google/uuid v1.1.1
+	github.com/gorilla/websocket v1.4.1
 	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/oxequa/interact v0.0.0-20171114182912-f8fb5795b5d7 // indirect
 	github.com/oxequa/realize v2.0.2+incompatible // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/rimiti/kill-port v1.0.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
+	github.com/urfave/cli v1.22.2 // indirect
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect

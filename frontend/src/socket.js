@@ -49,7 +49,7 @@ export default class Socket {
     // message handles an incoming message and forwards it to an event listener.
     message(e) {
         try {
-            const message = JSON.parse(e.data);
+            const message = JSON.parse(e.data); // Sends a message to local client
             this.ee.emit(message.name, message.data);
         }
         catch (err) {
