@@ -8,8 +8,7 @@ import (
 
 func info(app *cli.App) {
 	app.Name = "Simulation CLI"
-	//app.Usage = "An example CLI for ordering pizza's"
-	//app.Author = "Jeroenouw"
+	app.Usage = "Simulating car traffic over time"
 	app.Version = "0.0.1"
 }
 

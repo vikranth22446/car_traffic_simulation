@@ -5,9 +5,38 @@ Install golang using https://golang.org/doc/install
 ```
 go get
 ```
-Can quickly run the code using `make` to get it to start
+## Running Code via Make
+the commands make supports. Type `make` to view this description
+```sh
+(1) make run: To build and run it
+(2) make hotreload: To run air
+(3) make build: To just build it
+```
+## Running the CLI
+After building the code, you can run a cli to start the server or run commands.
+Running ee126_car_simulation executable gets the following description.
+```sh
+NAME:
+   Simulation CLI - Simulating car traffic over time
+
+USAGE:
+   ee126_car_simulation [global options] command [command options] [arguments...]
+
+VERSION:
+   0.0.1
+
+COMMANDS:
+   start-server, start         Starts the golang server
+   run-terminal-simulation, t  Can run the simulation as terminal printouts
+   help, h                     Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h     show help
+   --version, -v  print the version
+```
+
 ## Installing Air for Hot Reload
-Air allows for hot reload of code
+for development on a hot reloading server,  we use the air library.
 ### macOS
 ```sh
 curl -fLo ~/.air \
