@@ -5,7 +5,8 @@ import (
 	"time"
 )
 
-func RunTerminalSimulation(action bool) {
+// RunTerminalSingleLaneSimulation simulates and prints the movement through a single lane
+func RunTerminalSingleLaneSimulation(action bool) {
 	simulation := initSingleLaneSimulation(10)
 	simulation.runningSimulation = true
 
@@ -28,6 +29,7 @@ func RunTerminalSimulation(action bool) {
 	RenderTerminalFPS(simulation)
 }
 
+// RenderTerminalFPS renders date to the screen after every fps. It may clutter up the screen and lag
 func RenderTerminalFPS(simulation *SingleLaneSimulation) {
 	var _, renderStartTime, diff, sleep int64
 	_ = time.Now().UnixNano()

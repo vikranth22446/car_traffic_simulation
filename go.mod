@@ -29,6 +29,8 @@ require (
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/urfave/cli v1.22.2
 	github.com/valyala/fasttemplate v1.1.0 // indirect
+	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933 // indirect
+	golang.org/x/tools v0.0.0-20191130070609-6e064ea0cf2d // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )

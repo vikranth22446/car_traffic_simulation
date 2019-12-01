@@ -13,4 +13,7 @@ hotreload:
 build:
 	go build  -o ./ee126_car_simulation *.go
 
-.PHONY: run hotreload build
+lint:
+	golint
+
+.PHONY: run hotreload build lint

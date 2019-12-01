@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// SingleLaneSimulation handles a list of cars moving from one side to another
 type SingleLaneSimulation struct {
 	Simulation
 	Lane            *Lane
@@ -13,14 +14,9 @@ type SingleLaneSimulation struct {
 	moveCarsEndLane chan *Lane
 }
 
-func RightPad2Len(s string, padStr string, overallLen int) string {
-	var padCountInt = 1 + ((overallLen - len(padStr)) / len(padStr))
-	var retStr = s + strings.Repeat(padStr, padCountInt)
-	return retStr[:overallLen]
-}
-func (sim *SingleLaneSimulation) String() (string) {
+func (singleSim *SingleLaneSimulation) String() (string) {
 	var b strings.Builder
-	lane := sim.Lane
+	lane := singleSim.Lane
 	fmt.Fprintf(&b, " inBin ")
 	for i := 1; i < len(lane.Locations)-1; i++ {
 		loc := lane.Locations[i]
@@ -64,10 +60,10 @@ func initSingleLaneSimulation(sizeOfLane int) *SingleLaneSimulation {
 	return &simulation
 }
 
-func (simulation *SingleLaneSimulation) close() {
-	simulation.runningSimulation = false
+func (singleSim *SingleLaneSimulation) close() {
+	singleSim.runningSimulation = false
 }
-
+// RunSingleLaneSimulation runs the simulation such that all the cars from bin 0 move to the last bin
 func RunSingleLaneSimulation(simulation *SingleLaneSimulation) {
 	defer simulation.close()
 	lane := simulation.Lane
@@ -125,7 +121,7 @@ func RunSingleLaneSimulation(simulation *SingleLaneSimulation) {
 
 			nextLoc.Cars[car.id] = car
 			delete(currLoc.Cars, car.id) // remove the car from the current Lane
-			car.lanePos += 1
+			car.lanePos++
 			go MoveCarInLane(car, carClock)
 			drawUpdateChan <- true
 			break

@@ -1,5 +1,5 @@
 package main
-
+// GeneralLaneSimulation handles a general simulation with n horizontal lanes and n vertical lanes and intersections
 type GeneralLaneSimulation struct {
 	Simulation
 	HorizontalLanes *[]Lane

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// UserGroup keeps track of the current weboscket connections
 type UserGroup struct {
 	users map[*User]bool
 	ids   map[uuid.UUID]*User
@@ -21,19 +22,19 @@ func newUserGroup() *UserGroup {
 }
 
 // FindHandler implements a handler finding function for router.
-func (rt *UserGroup) FindHandler(event string) (Handler, bool) {
-	handler, found := rt.rules[event]
+func (userGroup *UserGroup) FindHandler(event string) (Handler, bool) {
+	handler, found := userGroup.rules[event]
 	return handler, found
 }
 
 // AddEventHandler is a function to add handlers to the router.
-func (rt *UserGroup) AddEventHandler(event string, handler Handler) {
-	rt.rules[event] = handler
+func (userGroup *UserGroup) AddEventHandler(event string, handler Handler) {
+	userGroup.rules[event] = handler
 }
 
-func (self *UserGroup) removePlayer(p *User) {
-	delete(self.users, p)
-	delete(self.ids, p.Id)
+func (userGroup *UserGroup) removePlayer(p *User) {
+	delete(userGroup.users, p)
+	delete(userGroup.ids, p.ID)
 	// close(p.send)
 	p.group = nil
 }
@@ -50,15 +51,14 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-func (self *UserGroup) addUser(p *User) {
+func (userGroup *UserGroup) addUser(p *User) {
 	//var chunk []byte
 
-	p.group = self
-	newUUid, err := uuid.NewUUID()
-	//(err)
+	p.group = userGroup
+	newUUID, err := uuid.NewUUID()
 	if err != nil {
 		return
 	}
-	p.Id = newUUid
-	self.users[p] = true
+	p.ID = newUUID
+	userGroup.users[p] = true
 }

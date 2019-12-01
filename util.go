@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
+	"math/rand"
 	"net/http"
 	"strings"
 )
 
+// HandleErr is a wrapper to panick if the error exists
 func HandleErr(err error) {
-	//fmt.Printf("err")
 	if err != nil {
 		panic(err)
 	}
@@ -29,6 +30,7 @@ func respondwithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
+// FileServer is the handler for serving files at a static route
 func FileServer(r chi.Router, path string, root http.FileSystem) {
 	if strings.ContainsAny(path, "{}*") {
 		panic("FileServer does not permit URL parameters.")
@@ -47,10 +49,18 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 	}))
 }
 
+// UniformRand randomly picks something from 0 to 1
 func UniformRand() float64 {
 	rnd := rand.Float64()
 	max := 1.0
 	min := 0.0
 
 	return rnd*(max-min) + min
+}
+
+// RightPad2Len pads a string to a certain length for better printing
+func RightPad2Len(s string, padStr string, overallLen int) string {
+	var padCountInt = 1 + ((overallLen - len(padStr)) / len(padStr))
+	var retStr = s + strings.Repeat(padStr, padCountInt)
+	return retStr[:overallLen]
 }

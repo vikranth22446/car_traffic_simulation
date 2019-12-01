@@ -27,7 +27,7 @@ func commands(app *cli.App) {
 			Aliases: []string{"t"},
 			Usage:   "Can run the simulation as terminal printouts",
 			Action: func(c *cli.Context) {
-				RunTerminalSimulation(true)
+				RunTerminalSingleLaneSimulation(true)
 			},
 		},
 	}

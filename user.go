@@ -14,24 +14,28 @@ import (
 var playerShowLog = false
 
 var (
-	ErrNoWebsocket = errors.New(`Don't have any websocket connection.`)
+	// ErrNoWebsocket is the error when websocket fails
+	ErrNoWebsocket = errors.New(`don't have any websocket connection`)
 )
-
+// User object tracks the current connection and the current simulation
 type User struct {
 	ws     *websocket.Conn
 	output chan []byte
 	addr   net.Addr
 
 	group             *UserGroup
-	Id                uuid.UUID
+	ID                uuid.UUID
 	simulationRunning bool
 	simulation        *SingleLaneSimulation
 }
 
+// Message is the struct to communicate to the client
 type Message struct {
 	Event string      `json:"event"`
 	Data  interface{} `json:"data"`
 }
+
+// Handler handles messages back from the client
 type Handler func(*websocket.Conn, interface{})
 
 func newUser(ws *websocket.Conn) *User {
@@ -49,43 +53,43 @@ func newUser(ws *websocket.Conn) *User {
 	return self
 }
 
-func (self *User) log(s string) {
-	log.Printf("%s: %s\n", self.addr, s)
+func (user *User) log(s string) {
+	log.Printf("%s: %s\n", user.addr, s)
 }
 
-func (self *User) write(data []byte) {
-	if self.ws == nil {
+func (user *User) write(data []byte) {
+	if user.ws == nil {
 		return
 	}
-	if self.output == nil {
+	if user.output == nil {
 		return
 	}
-	self.output <- data
+	user.output <- data
+}
+// Is function checks if two users are the same
+func (user *User) Is(other *User) bool {
+	return user.ID == other.ID
 }
 
-func (self *User) Is(other *User) bool {
-	return self.Id == other.Id
-}
-
-func (self *User) identify() (error) {
-	message := Message{Event: identify, Data: self.Id.String()}
+func (user *User) identify() (error) {
+	message := Message{Event: identify, Data: user.ID.String()}
 	marshalledMessage, err := json.Marshal(message)
 	if err != nil {
 		return err
 		// TODO handle marshall err
 	}
-	self.write(marshalledMessage)
+	user.write(marshalledMessage)
 	return nil
 }
 
-func (self *User) runSimulation() {
-	if self.simulationRunning {
+func (user *User) runSimulation() {
+	if user.simulationRunning {
 		return
 	}
-	self.simulationRunning = true
+	user.simulationRunning = true
 
 	simulation := initSingleLaneSimulation(10)
-	self.simulation = simulation
+	user.simulation = simulation
 
 	go RunSingleLaneSimulation(simulation)
 	for {
@@ -95,23 +99,23 @@ func (self *User) runSimulation() {
 		}
 		select {
 		case <-simulation.drawUpdateChan:
-			self.sendUpdatedSimulation()
+			user.sendUpdatedSimulation()
 			break
 		}
 	}
 }
 
-func (self *User) sendUpdatedSimulation() {
+func (user *User) sendUpdatedSimulation() {
 
-	//chunk := updateFn(self.Id, b)
+	//chunk := updateFn(user.ID, b)
 	// TODO Update game state and send message
-	//b := self.Serialize()
+	//b := user.Serialize()
 	//if b != nil {
 	//
-	//	if self.sector != nil {
-	//		for p, _ := range self.sector.players {
+	//	if user.sector != nil {
+	//		for p, _ := range user.sector.players {
 	//			if p.ws != nil && p.output != nil {
-	//				if self.isNear(p) == true {
+	//				if user.isNear(p) == true {
 	//					p.write(chunk)
 	//				}
 	//			}
@@ -122,44 +126,44 @@ func (self *User) sendUpdatedSimulation() {
 }
 
 // Below this is to handle reading and sending message from websockets
-func (self *User) reader() {
+func (user *User) reader() {
 	var msg Message
 	for {
 		// read incoming message from socket
-		if err := self.ws.ReadJSON(&msg); err != nil {
+		if err := user.ws.ReadJSON(&msg); err != nil {
 			log.Printf("socket read error: %v\n", err)
 			break
 		}
 		if playerShowLog == true {
-			log.Printf("%s -> %s\n", self.ws.RemoteAddr(), msg.Event)
+			log.Printf("%s -> %s\n", user.ws.RemoteAddr(), msg.Event)
 		}
 
 		// assign message to a function handler
-		if handler, found := self.group.FindHandler(msg.Event); found {
+		if handler, found := user.group.FindHandler(msg.Event); found {
 			// send msg.id
-			handler(self.ws, msg.Data)
+			handler(user.ws, msg.Data)
 		}
 	}
 
-	self.log("Exiting reader.")
-	self.close()
+	user.log("Exiting reader.")
+	user.close()
 }
-func (self *User) Write(p []byte) (n int, err error) {
+func (user *User) Write(p []byte) (n int, err error) {
 
-	if self.ws == nil {
+	if user.ws == nil {
 		return 0, ErrNoWebsocket
 	}
 
-	err = self.ws.WriteMessage(websocket.TextMessage, p)
+	err = user.ws.WriteMessage(websocket.TextMessage, p)
 
 	if playerShowLog == true {
-		log.Printf("%s <- %s: %v\n", self.ws.RemoteAddr(), p, err)
+		log.Printf("%s <- %s: %v\n", user.ws.RemoteAddr(), p, err)
 	}
 
 	return len(p), err
 }
 
-func (self *User) writer() {
+func (user *User) writer() {
 	var start, diff, sleep int64
 	var buf []byte
 
@@ -173,7 +177,7 @@ func (self *User) writer() {
 		loop := true
 		for loop {
 			select {
-			case message := <-self.output:
+			case message := <-user.output:
 				buf = append(buf, message...)
 				buf = append(buf, '\n')
 			default:
@@ -182,7 +186,7 @@ func (self *User) writer() {
 		}
 
 		if len(buf) > 0 {
-			_, err := self.Write(buf)
+			_, err := user.Write(buf)
 			if err != nil {
 				writing = false
 			}
@@ -198,21 +202,21 @@ func (self *User) writer() {
 		time.Sleep(time.Duration(sleep) * time.Nanosecond)
 	}
 
-	self.close()
+	user.close()
 }
 
-func (self *User) close() {
-	if self.ws != nil {
-		self.log("Closing websocket.")
-		self.ws.Close()
-		self.ws = nil
-		self.log("Websocket closed.")
+func (user *User) close() {
+	if user.ws != nil {
+		user.log("Closing websocket.")
+		user.ws.Close()
+		user.ws = nil
+		user.log("Websocket closed.")
 	}
 
-	if self.output != nil {
-		self.log("Closing channel.")
-		close(self.output)
-		self.output = nil
-		self.log("Channel closed.")
+	if user.output != nil {
+		user.log("Closing channel.")
+		close(user.output)
+		user.output = nil
+		user.log("Channel closed.")
 	}
 }
