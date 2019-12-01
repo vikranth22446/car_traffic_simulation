@@ -84,10 +84,10 @@ func (self *User) runSimulation() {
 	}
 	self.simulationRunning = true
 
-	simulation := initSimulation(10)
+	simulation := initSingleLaneSimulation(10)
 	self.simulation = simulation
 
-	go RunSimulation(simulation)
+	go RunSingleLaneSimulation(simulation)
 	for {
 		if !simulation.runningSimulation {
 			fmt.Println("SingleLaneSimulation completed")
