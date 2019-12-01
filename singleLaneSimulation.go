@@ -18,13 +18,22 @@ func (car *Car) String() string {
 	return car.id
 }
 
+type SimulationConfig struct {
+	sizeOfLane int
+}
+
 type Simulation struct {
-	lane              *Lane
-	moveCarsInLane    chan *Lane
-	carClock          chan *Car
-	moveCarsEndLane   chan *Lane
-	runningSimulation bool
 	drawUpdateChan    chan bool
+	runningSimulation bool
+	config            SimulationConfig
+}
+
+type SingleLaneSimulation struct {
+	Simulation
+	Lane            *Lane
+	moveCarsInLane  chan *Lane
+	carClock        chan *Car
+	moveCarsEndLane chan *Lane
 }
 
 func RightPad2Len(s string, padStr string, overallLen int) string {
@@ -32,9 +41,9 @@ func RightPad2Len(s string, padStr string, overallLen int) string {
 	var retStr = s + strings.Repeat(padStr, padCountInt)
 	return retStr[:overallLen]
 }
-func (sim *Simulation) String() (string) {
+func (sim *SingleLaneSimulation) String() (string) {
 	var b strings.Builder
-	lane := sim.lane
+	lane := sim.Lane
 	fmt.Fprintf(&b, " inBin ")
 	for i := 1; i < len(lane.Locations)-1; i++ {
 		loc := lane.Locations[i]
@@ -120,14 +129,14 @@ func getCarFromLocation(location *Location, del bool) (*Car) {
 	return currCar
 }
 
-func initSimulation(sizeOfLane int) *Simulation {
-	simulation := Simulation{}
+func initSimulation(sizeOfLane int) *SingleLaneSimulation {
+	simulation := SingleLaneSimulation{}
 
 	lane := Lane{
 		Locations:  make([]Location, sizeOfLane),
 		sizeOfLane: sizeOfLane,
 	}
-	simulation.lane = &lane
+	simulation.Lane = &lane
 
 	for i := 0; i < sizeOfLane; i++ {
 		lane.Locations[i].Cars = make(map[string]*Car, 0)
@@ -143,12 +152,14 @@ func initSimulation(sizeOfLane int) *Simulation {
 	simulation.drawUpdateChan = make(chan bool)
 	return &simulation
 }
-func (simulation *Simulation) close() {
+
+func (simulation *SingleLaneSimulation) close() {
 	simulation.runningSimulation = false
 }
-func RunSimulation(simulation *Simulation) {
+
+func RunSimulation(simulation *SingleLaneSimulation) {
 	defer simulation.close()
-	lane := simulation.lane
+	lane := simulation.Lane
 	moveCarsInLane := simulation.moveCarsInLane
 	moveCarsEndLane := simulation.moveCarsEndLane
 	carClock := simulation.carClock
@@ -156,10 +167,9 @@ func RunSimulation(simulation *Simulation) {
 
 	go moveCarsThroughBins(lane, moveCarsInLane, true)
 	go moveCarsThroughBins(lane, moveCarsEndLane, false)
-	//go MoveCarInLane(lane, moveCarsEndLane)
+	//go MoveCarInLane(Lane, moveCarsEndLane)
 
 	for {
-		// TODO handle case where everything is complete
 		if len(lane.Locations[lane.sizeOfLane-1].Cars) == lane.sizeOfLane {
 			return
 		}
@@ -201,8 +211,9 @@ func RunSimulation(simulation *Simulation) {
 				go MoveCarInLane(car, carClock) // If next position blocked, attempt to move again on a exponential clock
 				break
 			}
+
 			nextLoc.Cars[car.id] = car
-			delete(currLoc.Cars, car.id) // remove the car from the current lane
+			delete(currLoc.Cars, car.id) // remove the car from the current Lane
 			car.lanePos += 1
 			go MoveCarInLane(car, carClock)
 			drawUpdateChan <- true

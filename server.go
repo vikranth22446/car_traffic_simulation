@@ -46,8 +46,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	go user.writer()
 
-	user.identify()
-
+	err = user.identify()
+	if err != nil {
+		ws.Close()
+		return
+	}
 	user.reader()
 
 	// Once reader returns the connection is finalized
@@ -63,11 +66,12 @@ func addRoutes(router *chi.Mux) *chi.Mux {
 	workDir, err := os.Getwd()
 	HandleErr(err)
 
-	FileServer(router, "/static", http.Dir(filepath.Join(workDir, "static")))
+	FileServer(router, "/static", http.Dir(filepath.Join(workDir, "public/build")))
 	router.Get("/", index)
 	router.HandleFunc("/ws", wsHandler)
 	return router
 }
+
 func runServer() {
 	flag.IntVar(&port, "p", 80, "Port to listen for HTTP requests (default port 8080).")
 	// Parse the args.

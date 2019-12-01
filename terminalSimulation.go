@@ -13,7 +13,7 @@ func RunTerminalSimulation(action bool) {
 	if action {
 		for {
 			if !simulation.runningSimulation {
-				fmt.Println("Simulation completed")
+				fmt.Println("SingleLaneSimulation completed")
 				return
 			}
 			select {
@@ -28,7 +28,7 @@ func RunTerminalSimulation(action bool) {
 	RenderTerminalFPS(simulation)
 }
 
-func RenderTerminalFPS(simulation *Simulation) {
+func RenderTerminalFPS(simulation *SingleLaneSimulation) {
 	var _, renderStartTime, diff, sleep int64
 	_ = time.Now().UnixNano()
 	for {

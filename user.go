@@ -25,7 +25,7 @@ type User struct {
 	group             *UserGroup
 	Id                uuid.UUID
 	simulationRunning bool
-	simulation        *Simulation
+	simulation        *SingleLaneSimulation
 }
 
 type Message struct {
@@ -68,13 +68,15 @@ func (self *User) Is(other *User) bool {
 	return self.Id == other.Id
 }
 
-func (self *User) identify() {
-	message := Message{Event: "identify", Id: self.Id.String()}
+func (self *User) identify() (error) {
+	message := Message{Event: identify, Id: self.Id.String()}
 	marshalledMessage, err := json.Marshal(message)
 	if err != nil {
+		return err
 		// TODO handle marshall err
 	}
 	self.write(marshalledMessage)
+	return nil
 }
 
 func (self *User) runSimulation() {
@@ -82,29 +84,26 @@ func (self *User) runSimulation() {
 		return
 	}
 	self.simulationRunning = true
+
 	simulation := initSimulation(10)
 	self.simulation = simulation
+
 	go RunSimulation(simulation)
-	var start, diff, sleep int64
-
 	for {
-		start = time.Now().UnixNano()
-		self.update()
-
-		diff = time.Now().UnixNano() - start
-		sleep = fpsn - diff
-
-		fmt.Printf("sleep: %d, diff: %d\n", sleep, diff)
-
-		if sleep < 0 {
-			continue
+		if !simulation.runningSimulation {
+			fmt.Println("SingleLaneSimulation completed")
+			return
 		}
-
-		time.Sleep(time.Duration(sleep) * time.Nanosecond)
+		select {
+		case <-simulation.drawUpdateChan:
+			self.sendUpdatedSimulation()
+			break
+		}
 	}
 }
 
-func (self *User) update() {
+func (self *User) sendUpdatedSimulation() {
+
 	//chunk := updateFn(self.Id, b)
 	// TODO Update game state and send message
 	//b := self.Serialize()
@@ -120,6 +119,7 @@ func (self *User) update() {
 	//		}
 	//	}
 	//}
+
 }
 
 // Below this is to handle reading and sending message from websockets

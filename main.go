@@ -7,7 +7,7 @@ import (
 )
 
 func info(app *cli.App) {
-	app.Name = "Simulation CLI"
+	app.Name = "SingleLaneSimulation CLI"
 	app.Usage = "Simulating car traffic over time"
 	app.Version = "0.0.1"
 }
