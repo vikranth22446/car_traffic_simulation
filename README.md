@@ -27,7 +27,7 @@ VERSION:
 
 COMMANDS:
    start-server, start         Starts the golang server
-   run-terminal-simulation, t  Can run the simulation as terminal printouts
+   run-terminal-simulation, t  Can run the simulation as terminal printouts for single lane simulation
    help, h                     Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
