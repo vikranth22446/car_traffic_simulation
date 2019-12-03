@@ -39,20 +39,21 @@ GLOBAL OPTIONS:
 for development on a hot reloading server,  we use the air library.
 ### macOS
 ```sh
-curl -fLo ~/.air \
+curl -fLo ./air \
     https://raw.githubusercontent.com/cosmtrek/air/master/bin/darwin/air
-chmod +x ~/.air
+chmod +x ./air
 ```
+
 ### Linux
 ```sh
-curl -fLo ~/.air \
+curl -fLo ./air \
     https://raw.githubusercontent.com/cosmtrek/air/master/bin/linux/air
-chmod +x ~/.air
+chmod +x ./air
 ```
 
 ### Windows
 ```sh
-curl -fLo ~/.air.exe \
+curl -fLo ./air.exe \
     https://raw.githubusercontent.com/cosmtrek/air/master/bin/windows/air.exe
 ```
 
