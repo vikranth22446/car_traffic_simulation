@@ -32,6 +32,14 @@ type Accident struct {
 	probRestart       float64
 	removalRate       float64
 }
+
+type Parking struct {
+	prevLoc         *StatefulLocation
+	car             *SmartCar
+	parkingTimeRate float64
+	parkingLoc      *StatefulLocation
+}
+
 type SmartCarState int
 
 const (
@@ -47,6 +55,7 @@ type SmartCar struct {
 	Direction    Direction
 	probMovement float64
 	carState     SmartCarState
+	slowingDown  bool
 }
 
 type LocationState int
@@ -55,8 +64,9 @@ const (
 	Empty LocationState = iota
 	Intersection
 	LaneLoc
-	Parking
+	ParkingLoc
 	AccidentLocationState
+	CrossWalk
 )
 
 // Location is one spot on a lane
@@ -65,6 +75,35 @@ type StatefulLocation struct {
 	LocationState LocationState
 	x             int
 	y             int
+}
+
+func getNewCarSpeed(speedType CarDistributionType, carSpeedEndRange float64) float64 {
+	var speed float64
+	if speedType == constantDistribution {
+		speed = 1.0
+	} else if speedType == normalDistribution {
+		var UnitNormal = distuv.Normal{Mu: 0, Sigma: 1}
+		speed = UnitNormal.Rand()
+	} else if speedType == exponentialDistribution {
+		var exponential = distuv.Exponential{Rate: 1}
+		speed = exponential.Rand()
+	} else if speedType == poissonDistribution {
+		var poisson = distuv.Poisson{Lambda: 1}
+		speed = poisson.Rand()
+	} else if speedType == uniformDistribution {
+		speed = UniformRandMinMax(0, carSpeedEndRange)
+	}
+	return speed
+}
+
+type SlowCar struct {
+	car          *SmartCar
+	oldSpeed     float64
+	slowDownRate float64
+}
+
+func (loc *StatefulLocation) canMoveToParking() bool {
+	return loc.LocationState == LaneLoc || loc.LocationState == CrossWalk || loc.LocationState == AccidentLocationState
 }
 
 func (loc *StatefulLocation) addNCars(numCars int,
@@ -79,21 +118,7 @@ func (loc *StatefulLocation) addNCars(numCars int,
 		} else {
 			id = fmt.Sprintf("vcar %d", i)
 		}
-		var speed float64
-		if speedType == constantDistribution {
-			speed = 1.0
-		} else if speedType == normalDistribution {
-			var UnitNormal = distuv.Normal{Mu: 0, Sigma: 1}
-			speed = UnitNormal.Rand()
-		} else if speedType == exponentialDistribution {
-			var exponential = distuv.Exponential{Rate: 1}
-			speed = exponential.Rand()
-		} else if speedType == poissonDistribution {
-			var poisson = distuv.Poisson{Lambda: 1}
-			speed = poisson.Rand()
-		} else if speedType == uniformDistribution {
-			speed = UniformRandMinMax(0, carSpeedEndRange)
-		}
+		speed := getNewCarSpeed(speedType, carSpeedEndRange)
 		loc.Cars[id] = &SmartCar{
 			ID:        id,
 			Direction: direction,
@@ -105,7 +130,14 @@ func (loc *StatefulLocation) addNCars(numCars int,
 }
 
 func (loc *StatefulLocation) isEmpty() bool {
-	return len(loc.Cars) == 0 && (loc.LocationState == LaneLoc || loc.LocationState == Intersection)
+	return len(loc.Cars) == 0 &&
+		(loc.LocationState == LaneLoc ||
+			loc.LocationState == Intersection ||
+			loc.LocationState == CrossWalk)
+}
+
+func (loc *StatefulLocation) removeCar(car *SmartCar) {
+	delete(loc.Cars, car.ID)
 }
 
 func (loc *StatefulLocation) getCar(del bool) (*SmartCar) {
@@ -165,8 +197,7 @@ type GeneralLaneSimulationConfig struct {
 	laneSwitchChoice   LaneChoice
 
 	// Handles accidents
-	poissonProbAccidentRate float64
-	poissonProbCutoffProb   float64
+	poissonProbCutoffProb float64
 
 	carRemovalRate float64 // exponential time
 	carRestartRate float64 // car restart rate
@@ -175,21 +206,32 @@ type GeneralLaneSimulationConfig struct {
 	carClock                float64 // for uniform, defaults to start of range
 	carSpeedUniformEndRange float64
 	CarDistributionType     CarDistributionType
+	reSampleSpeedEveryClk   bool
 
 	// handles cars going to fast
-	carPoliceCutoff    float64
-	probPolicePullOver float64
+	carPoliceCutoff           float64
+	probPolicePullOver        float64
+	speedBasedAccidentScaling bool
 
 	// parking
-	parkingEnabled          bool
-	distractionRate         float64 // to get into parking
-	parkingCutoff           float64 // number of cars in parking
-	pedestrianDeathAccident float64
+	parkingEnabled    bool
+	distractionRate   float64 // poisson to get into parking
+	parkingTimeRate   float64 // how long should car stay in parking
+	parkingProbCutoff float64 // number of cars in parking
+	crossWalkCutoff   int     /// numbers of cars in parking
+
+	// crosswalk
+	crossWalkEnabled      bool
+	crossWalkSlowDownRate float64
+
+	pedestrianDeathAccidentProb float64 //
 
 	// intersection
 	probEnteringIntersection float64
 	intersectionAccidentRate float64 // if unspecified the same as regular accident probability
-	accidentScaling          bool    // scales poisson rate by certain amount
+	accidentScaling          bool    // retry for accident based on the number of cars there
+	slowDownSpeed            float64
+	// scales poisson rate by certain amount
 }
 
 func DefaultGeneralLaneConfig() GeneralLaneSimulationConfig {
@@ -209,16 +251,17 @@ func DefaultGeneralLaneConfig() GeneralLaneSimulationConfig {
 
 	config.probSwitchingLanes = 0
 
-	config.poissonProbAccidentRate = 1
 	config.poissonProbCutoffProb = 0
 
 	config.carClock = 1
 	config.CarDistributionType = constantDistribution
+	config.reSampleSpeedEveryClk = false
 
 	config.parkingEnabled = false
 	config.probEnteringIntersection = 1
-
+	config.parkingTimeRate = 1
 	config.accidentScaling = false
+	config.crossWalkCutoff = 2
 
 	config.intersectionAccidentRate = 0
 	return config
@@ -239,8 +282,12 @@ type GeneralLaneSimulation struct {
 	moveCarsIn  chan Direction
 	moveCarsOut chan Direction
 
-	carClock     chan *SmartCar
+	carClock       chan *SmartCar
+	crossWalkClock chan *SlowCar
+
 	accidentChan chan *Accident
+
+	parkingReturn chan *Parking
 }
 
 type JsonGeneralLocation struct {
@@ -443,16 +490,17 @@ func initMultiLaneSimulation(config GeneralLaneSimulationConfig) (*GeneralLaneSi
 		simulation.InVerticalRoot = &verticalRoot
 		simulation.OutVerticalRoot = &StatefulLocation{Cars: make(map[string]*SmartCar, 0)}
 	}
-	// Initialize Parking Locations
+	// Note: Decided to only use one position for parking
+	// Initialize ParkingLoc Locations
 	for i := 0; i < sizeOfLane; i++ {
-		verticalParkingStart := verticalStartIndex - 1
+		//verticalParkingStart := verticalStartIndex - 1
 		verticalParkingEnd := verticalEndIndex + 1
-		simulation.addParkingIfInBounds(verticalParkingStart, i)
+		//simulation.addParkingIfInBounds(verticalParkingStart, i)
 		simulation.addParkingIfInBounds(verticalParkingEnd, i)
 
-		horizontalParkingStart := horizontalStartIndex - 1
+		//horizontalParkingStart := horizontalStartIndex - 1
 		horizontalParkingEnd := horizontalEndIndex + 1
-		simulation.addParkingIfInBounds(i, horizontalParkingStart)
+		//simulation.addParkingIfInBounds(i, horizontalParkingStart)
 		simulation.addParkingIfInBounds(i, horizontalParkingEnd)
 	}
 
@@ -461,6 +509,8 @@ func initMultiLaneSimulation(config GeneralLaneSimulationConfig) (*GeneralLaneSi
 
 	simulation.carClock = make(chan *SmartCar)
 	simulation.accidentChan = make(chan *Accident)
+	simulation.parkingReturn = make(chan *Parking)
+	simulation.crossWalkClock = make(chan *SlowCar)
 
 	simulation.runningSimulation = false
 	simulation.drawUpdateChan = make(chan bool)
@@ -481,13 +531,13 @@ func (sim *GeneralLaneSimulation) addParkingIfInBounds(i int, j int) {
 	if location.LocationState == Intersection || location.LocationState == LaneLoc {
 		return
 	}
-	location.LocationState = Parking
+	location.LocationState = ParkingLoc
 }
 func isInBounds(index int, size int) bool {
 	return index >= 0 && index < size
 }
-func (sim *GeneralLaneSimulation) countNumCarsNearby(loc *StatefulLocation) float64 {
-	count := 1.0
+func (sim *GeneralLaneSimulation) countNumCarsNearby(loc *StatefulLocation) int {
+	count := 1
 	if isInBounds(loc.x+1, sim.config.sizeOfLane) && !sim.Locations[loc.x+1][loc.y].isEmpty() {
 		count++
 	}
@@ -552,6 +602,8 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 
 	carClock := simulation.carClock
 	accidentChan := simulation.accidentChan
+	parkingChan := simulation.parkingReturn
+	crossWalkClock := simulation.crossWalkClock
 
 	drawUpdateChan := simulation.drawUpdateChan
 
@@ -583,7 +635,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 				break
 			}
 			chosenLoc := simulation.RandomlyPickLocation(openLanes, carInDirection, simulation.config.inLaneChoice)
-			currCar := root.getCar(true)
+			currCar := root.getCar(true) // allows for picking any car from the pool
 			if currCar == nil {
 				break
 			}
@@ -609,7 +661,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			}
 
 			chosenLoc := simulation.RandomlyPickLocation(openLanes, carOutDirection, simulation.config.outLaneChoice)
-			currCar := chosenLoc.getCar(true)
+			currCar := chosenLoc.getCar(true) // allows for removing any car from the pool
 			if currCar == nil {
 				break
 			}
@@ -618,7 +670,11 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			drawUpdateChan <- true
 
 			break
+
 		case car := <-carClock:
+			if car == nil {
+				break
+			}
 			currLoc := simulation.Locations[car.X][car.Y]
 			var nextLoc *StatefulLocation
 			switchLanes := UniformRand() < car.probMovement
@@ -652,33 +708,69 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 				break
 			}
 
+			if simulation.config.parkingEnabled && currLoc.canMoveToParking() { // parking can only happen on regular lane
+				poisson := distuv.Poisson{Lambda: simulation.config.distractionRate}
+				distractionOccurs := poisson.Prob(poisson.Rand()) < simulation.config.parkingProbCutoff
+				if distractionOccurs {
+					var parkingLoc *StatefulLocation
+					if car.Direction == Horizontal {
+						_, bottomEnd := simulation.horizontalIndexRange()
+						if isInBounds(bottomEnd+1, simulation.config.sizeOfLane) {
+							parkingLoc = simulation.Locations[car.X][bottomEnd+1]
+						}
+					} else {
+						_, bottomEnd := simulation.verticalIndexRange()
+						if isInBounds(bottomEnd+1, simulation.config.sizeOfLane) {
+							parkingLoc = simulation.Locations[bottomEnd+1][car.Y]
+						}
+					}
+					if parkingLoc != nil {
+						currLoc.removeCar(car)
+						parkingLoc.addCar(car)
+						go HandleParking(&Parking{prevLoc: currLoc, car: car, parkingTimeRate: simulation.config.parkingTimeRate, parkingLoc: parkingLoc}, parkingChan)
+						simulation.AddCrossWalkIfNeeded(parkingLoc, car.Direction)
+					}
+				}
+			}
+
+			var accidentOccurs = false
 			if len(nextLoc.Cars) != 0 {
-				poisson := distuv.Poisson{Lambda: simulation.config.poissonProbAccidentRate}
+				poisson := distuv.Poisson{Lambda: 1}
 				if nextLoc.LocationState == Intersection && simulation.config.intersectionAccidentRate != 0 {
 					poisson = distuv.Poisson{Lambda: simulation.config.intersectionAccidentRate}
 				}
+				accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.poissonProbCutoffProb
 
 				if simulation.config.accidentScaling {
 					numCarsNearby := simulation.countNumCarsNearby(nextLoc)
-					poisson.Lambda *= numCarsNearby
+					for i := 0; i < numCarsNearby; i++ {
+						if accidentOccurs {
+							break
+						}
+						accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.poissonProbCutoffProb
+					}
 				}
 
 				// Handling of possible accident
-				accidentOccur := poisson.Prob(poisson.Rand()) < simulation.config.poissonProbCutoffProb
 
-				if accidentOccur {
-					nextLoc.LocationState = AccidentLocationState
-					currCar := currLoc.getCar(true)
-					if currCar == nil {
-						break
-					}
-					nextLoc.addCar(currCar)
-					go HandleAccident(&Accident{loc: nextLoc, resolution: Unresolved}, accidentChan)
-					drawUpdateChan <- true
-					break
+				if !accidentOccurs {
+					go MoveSmartCarInLane(car, carClock, nextLoc)
 				}
+				// If next position blocked, attempt to move again on a exponential clock
+				break
+			}
 
-				go MoveSmartCarInLane(car, carClock, nextLoc) // If next position blocked, attempt to move again on a exponential clock
+			if !accidentOccurs && nextLoc.LocationState == CrossWalk {
+				poisson := distuv.Poisson{Lambda: 1}
+				accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.pedestrianDeathAccidentProb
+			}
+
+			if accidentOccurs {
+				nextLoc.LocationState = AccidentLocationState
+				currLoc.removeCar(car)
+				nextLoc.addCar(car)
+				go HandleAccident(&Accident{loc: nextLoc, resolution: Unresolved}, accidentChan)
+				drawUpdateChan <- true
 				break
 			}
 
@@ -687,11 +779,19 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 				break
 			}
 
-			currCar := currLoc.getCar(true)
-			if currCar == nil {
-				break
+			currLoc.removeCar(car) // TODO update this to pick only the car being referenced
+
+			// Re sample if config is available
+			if currLoc.LocationState == CrossWalk && !car.slowingDown {
+				car.slowingDown = true
+				go HandleCrossWalkSlowCar(&SlowCar{car: car, oldSpeed: car.Speed, slowDownRate: simulation.config.crossWalkSlowDownRate}, crossWalkClock)
+				car.Speed = simulation.config.slowDownSpeed
 			}
-			nextLoc.addCar(currCar)
+			if simulation.config.reSampleSpeedEveryClk && !car.slowingDown {
+				car.Speed = getNewCarSpeed(simulation.config.CarDistributionType, simulation.config.carSpeedUniformEndRange)
+			}
+
+			nextLoc.addCar(car)
 			go MoveSmartCarInLane(car, carClock, nextLoc) // If next position blocked, attempt to move again on a exponential clock
 
 			drawUpdateChan <- true
@@ -717,9 +817,81 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 				}
 			}
 			break
+		case parkingCar := <-parkingChan:
+			var openLanes []*StatefulLocation
+			openLanes = simulation.getVerticalLanesAtIndex(parkingCar.prevLoc.x, Open)
+			if len(openLanes) == 0 {
+				go HandleParking(parkingCar, parkingChan) // retry bc no item in lane is free
+				break
+			}
+			nextLoc := simulation.RandomlyPickLocation(openLanes, parkingCar.car.Direction, simulation.config.laneSwitchChoice) // TODO consider whether the car can pick its own position to switch to
+
+			if !nextLoc.isEmpty() {
+				go HandleParking(parkingCar, parkingChan)
+				break
+				// send the car back into parking if there is no spot to return to
+			}
+
+			parkingCar.parkingLoc.removeCar(parkingCar.car) // remove a specific car from parking
+			nextLoc.addCar(parkingCar.car)
+			go MoveSmartCarInLane(parkingCar.car, carClock, nextLoc) // If next position blocked, attempt to move again on a exponential clock
+			simulation.RemoveCrossWalkIfNeeded(parkingCar.parkingLoc, parkingCar.car.Direction)
+			break
+		case slowCar := <-crossWalkClock:
+			slowCar.car.slowingDown = false
+			slowCar.car.Speed = slowCar.oldSpeed
 		case <-simulation.cancelSimulation:
 			return
 		}
+	}
+}
+
+func (sim *GeneralLaneSimulation) AddCrossWalkIfNeeded(parkingLoc *StatefulLocation, direction Direction) {
+	if len(parkingLoc.Cars) >= sim.config.crossWalkCutoff {
+		var locs []*StatefulLocation
+		if direction == Horizontal {
+			locs = sim.getHorizontalLanesAtIndex(parkingLoc.y, AllLocationTypes)
+		} else {
+			locs = sim.getVerticalLanesAtIndex(parkingLoc.x, AllLocationTypes)
+		}
+		for _, loc := range locs {
+			if loc.LocationState == LaneLoc {
+				loc.LocationState = CrossWalk
+			}
+		}
+	}
+
+}
+
+func (sim *GeneralLaneSimulation) RemoveCrossWalkIfNeeded(parkingLoc *StatefulLocation, direction Direction) {
+	if len(parkingLoc.Cars) < sim.config.crossWalkCutoff {
+		var locs []*StatefulLocation
+		if direction == Horizontal {
+			locs = sim.getHorizontalLanesAtIndex(parkingLoc.y, AllLocationTypes)
+		} else {
+			locs = sim.getVerticalLanesAtIndex(parkingLoc.x, AllLocationTypes)
+		}
+		for _, loc := range locs {
+			if loc.LocationState == CrossWalk {
+				loc.LocationState = LaneLoc
+			}
+		}
+	}
+}
+
+func HandleCrossWalkSlowCar(slowCar *SlowCar, movementChan chan *SlowCar) {
+	movementTime := rand.ExpFloat64() / slowCar.slowDownRate
+	select {
+	case <-time.After(time.Duration(movementTime) * time.Second):
+		movementChan <- slowCar
+	}
+}
+
+func HandleParking(parking *Parking, movementChan chan *Parking) {
+	movementTime := rand.ExpFloat64() / parking.parkingTimeRate
+	select {
+	case <-time.After(time.Duration(movementTime) * time.Second):
+		movementChan <- parking
 	}
 }
 
