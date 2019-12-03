@@ -217,15 +217,11 @@ func (user *User) writer() {
 
 		start = time.Now().UnixNano()
 
-		loop := true
-		for loop {
+		for {
 			select {
 			case message := <-user.output:
 				buf = append(buf, message...)
-				//buf = append(buf, '\n')
-				loop = false
-			default:
-				loop = false
+				break
 			}
 		}
 
