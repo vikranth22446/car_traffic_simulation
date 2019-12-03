@@ -143,6 +143,7 @@ func (user *User) sendCompletedSimulation() (error) {
 	message := Message{Event: completedSimulation, Data: "Completed"}
 	marshalledMessage, err := json.Marshal(message)
 	if err != nil {
+		panic(err)
 		return err
 		// TODO handle marshall err
 	}
@@ -155,6 +156,7 @@ func (user *User) sendUpdatedSimulation() (error) {
 	message := Message{Event: simulationUpdate, Data: jsonRes}
 	marshalledMessage, err := json.Marshal(message)
 	if err != nil {
+		panic(err)
 		return err
 		// TODO handle marshall err
 	}
@@ -211,7 +213,7 @@ func (user *User) writer() {
 	writing := true
 
 	for writing {
-		buf = make([]byte, 0, 1024*10)
+		buf = make([]byte, 0)
 
 		start = time.Now().UnixNano()
 
@@ -220,7 +222,8 @@ func (user *User) writer() {
 			select {
 			case message := <-user.output:
 				buf = append(buf, message...)
-				buf = append(buf, '\n')
+				//buf = append(buf, '\n')
+				loop = false
 			default:
 				loop = false
 			}

@@ -33932,6 +33932,8 @@ function () {
   }, {
     key: "message",
     value: function message(e) {
+      console.log(e.data);
+
       try {
         var message = JSON.parse(e.data); // Sends a message to local client
 
