@@ -77,23 +77,32 @@ type StatefulLocation struct {
 	y             int
 }
 
-func getNewCarSpeed(speedType CarDistributionType, carSpeedEndRange float64) float64 {
+func getNewCarSpeed(speedType CarDistributionType, carSpeedEndRange float64) (float64, float64) {
 	var speed float64
+	var prob float64
 	if speedType == constantDistribution {
 		speed = 1.0
+		prob = 1.0
 	} else if speedType == normalDistribution {
 		var UnitNormal = distuv.Normal{Mu: 0, Sigma: 1}
 		speed = UnitNormal.Rand()
+		prob = UnitNormal.Prob(speed)
 	} else if speedType == exponentialDistribution {
 		var exponential = distuv.Exponential{Rate: 1}
 		speed = exponential.Rand()
+		prob = exponential.Prob(speed)
 	} else if speedType == poissonDistribution {
 		var poisson = distuv.Poisson{Lambda: 1}
 		speed = poisson.Rand()
+		prob = poisson.Prob(speed)
 	} else if speedType == uniformDistribution {
+		if carSpeedEndRange == 0 {
+			carSpeedEndRange = 1
+		}
 		speed = UniformRandMinMax(0, carSpeedEndRange)
+		prob = 1 / carSpeedEndRange
 	}
-	return speed
+	return speed, prob
 }
 
 type SlowCar struct {
@@ -118,7 +127,7 @@ func (loc *StatefulLocation) addNCars(numCars int,
 		} else {
 			id = fmt.Sprintf("vcar %d", i)
 		}
-		speed := getNewCarSpeed(speedType, carSpeedEndRange)
+		speed, _ := getNewCarSpeed(speedType, carSpeedEndRange)
 		loc.Cars[id] = &SmartCar{
 			ID:        id,
 			Direction: direction,
@@ -209,9 +218,8 @@ type GeneralLaneSimulationConfig struct {
 	reSampleSpeedEveryClk   bool
 
 	// handles cars going to fast
-	carPoliceCutoff           float64
-	probPolicePullOver        float64
-	speedBasedAccidentScaling bool
+	probPolicePullOverProb float64
+	speedBasedPullOver     bool
 
 	// parking
 	parkingEnabled    bool
@@ -779,16 +787,23 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 				break
 			}
 
-			currLoc.removeCar(car) // TODO update this to pick only the car being referenced
-
+			currLoc.removeCar(car)
+			pollicePullsOver := UniformRand() < simulation.config.probPolicePullOverProb
+			if simulation.config.speedBasedPullOver {
+				_, prob := getNewCarSpeed(simulation.config.CarDistributionType, simulation.config.carSpeedUniformEndRange)
+				if simulation.config.probPolicePullOverProb < prob {
+					pollicePullsOver = true
+				}
+			}
 			// Re sample if config is available
-			if currLoc.LocationState == CrossWalk && !car.slowingDown {
+			if (currLoc.LocationState == CrossWalk || pollicePullsOver) && !car.slowingDown {
 				car.slowingDown = true
 				go HandleCrossWalkSlowCar(&SlowCar{car: car, oldSpeed: car.Speed, slowDownRate: simulation.config.crossWalkSlowDownRate}, crossWalkClock)
 				car.Speed = simulation.config.slowDownSpeed
 			}
 			if simulation.config.reSampleSpeedEveryClk && !car.slowingDown {
-				car.Speed = getNewCarSpeed(simulation.config.CarDistributionType, simulation.config.carSpeedUniformEndRange)
+				speed, _ := getNewCarSpeed(simulation.config.CarDistributionType, simulation.config.carSpeedUniformEndRange)
+				car.Speed = speed
 			}
 
 			nextLoc.addCar(car)
@@ -906,7 +921,6 @@ func HandleAccident(accident *Accident, movementChan chan *Accident) {
 			accident.resolution = Resolved
 			movementChan <- accident
 		}
-		// handle prob of starting again
 	}
 }
 
