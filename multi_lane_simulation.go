@@ -405,6 +405,7 @@ func initMultiLaneSimulation(config GeneralLaneSimulationConfig) (*GeneralLaneSi
 			locations[i][j].LocationState = LaneLoc
 			locations[i][j].Cars = make(map[string]*SmartCar, 0)
 		}
+
 	}
 
 	if numHorizontalLanes > 0 {
@@ -442,6 +443,18 @@ func initMultiLaneSimulation(config GeneralLaneSimulationConfig) (*GeneralLaneSi
 		simulation.InVerticalRoot = &verticalRoot
 		simulation.OutVerticalRoot = &StatefulLocation{Cars: make(map[string]*SmartCar, 0)}
 	}
+	// Initialize Parking Locations
+	for i := 0; i < sizeOfLane; i++ {
+		verticalParkingStart := verticalStartIndex - 1
+		verticalParkingEnd := verticalEndIndex + 1
+		simulation.addParkingIfInBounds(verticalParkingStart, i)
+		simulation.addParkingIfInBounds(verticalParkingEnd, i)
+
+		horizontalParkingStart := horizontalStartIndex - 1
+		horizontalParkingEnd := horizontalEndIndex + 1
+		simulation.addParkingIfInBounds(i, horizontalParkingStart)
+		simulation.addParkingIfInBounds(i, horizontalParkingEnd)
+	}
 
 	simulation.moveCarsIn = make(chan Direction)
 	simulation.moveCarsOut = make(chan Direction)
@@ -459,6 +472,16 @@ func normalize(arr []float64, totalCount float64) []float64 {
 		weights = append(weights, item/totalCount)
 	}
 	return weights
+}
+func (sim *GeneralLaneSimulation) addParkingIfInBounds(i int, j int) {
+	if !isInBounds(i, sim.config.sizeOfLane) || !isInBounds(j, sim.config.sizeOfLane) {
+		return
+	}
+	location := sim.Locations[i][j]
+	if location.LocationState == Intersection || location.LocationState == LaneLoc {
+		return
+	}
+	location.LocationState = Parking
 }
 func isInBounds(index int, size int) bool {
 	return index >= 0 && index < size
