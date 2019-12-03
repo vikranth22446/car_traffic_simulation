@@ -47,7 +47,7 @@ func initSingleLaneSimulation(sizeOfLane int) *SingleLaneSimulation {
 
 	for i := 0; i < sizeOfLane; i++ {
 		lane.Locations[i].Cars = make(map[string]*Car, 0)
-		//carUUID := uuid.New() can use id or car _
+		//carUUID := uuid.New() can use ID or car _
 		id := fmt.Sprintf("car %d", i)
 		lane.Locations[0].Cars[id] = &Car{id: id, lane: &lane, lanePos: 0}
 	}

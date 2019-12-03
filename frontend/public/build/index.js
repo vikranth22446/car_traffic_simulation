@@ -33923,7 +33923,7 @@ function () {
     key: "emit",
     value: function emit(name, data) {
       var message = JSON.stringify({
-        name: name,
+        event: name,
         data: data
       });
       this.ws.send(message);
@@ -33947,7 +33947,150 @@ function () {
 }();
 
 exports.default = Socket;
-},{"@babel/runtime/helpers/esm/classCallCheck":"../node_modules/@babel/runtime/helpers/esm/classCallCheck.js","@babel/runtime/helpers/esm/createClass":"../node_modules/@babel/runtime/helpers/esm/createClass.js","events":"../node_modules/events/events.js"}],"SimulationHandler.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/esm/classCallCheck":"../node_modules/@babel/runtime/helpers/esm/classCallCheck.js","@babel/runtime/helpers/esm/createClass":"../node_modules/@babel/runtime/helpers/esm/createClass.js","events":"../node_modules/events/events.js"}],"Simulation.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/esm/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/esm/createClass"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/esm/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/esm/getPrototypeOf"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/esm/inherits"));
+
+var _react = _interopRequireWildcard(require("react"));
+
+var _jsxFileName = "/Users/vikranth/Documents/Software/berkeley/ee126/traffic_simulation/frontend/src/Simulation.js";
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var SimulationCar =
+/*#__PURE__*/
+function (_Component) {
+  (0, _inherits2.default)(SimulationCar, _Component);
+
+  function SimulationCar() {
+    (0, _classCallCheck2.default)(this, SimulationCar);
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(SimulationCar).apply(this, arguments));
+  }
+
+  (0, _createClass2.default)(SimulationCar, [{
+    key: "render",
+    value: function render() {
+      var items = [];
+      var value;
+
+      for (var key in this.props.car) {
+        value = this.props.car[key];
+        items.push({
+          "name": key
+        });
+      }
+
+      if (items.length !== 0) {
+        return _react.default.createElement("div", {
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 13
+          },
+          __self: this
+        }, items.map(function (item) {
+          return _react.default.createElement("div", {
+            __source: {
+              fileName: _jsxFileName,
+              lineNumber: 15
+            },
+            __self: this
+          }, item.name);
+        }));
+      }
+
+      return _react.default.createElement("div", {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 19
+        },
+        __self: this
+      }, "\xA0\xA0\xA0\xA0");
+    }
+  }]);
+  return SimulationCar;
+}(_react.Component);
+
+var Simulation =
+/*#__PURE__*/
+function (_Component2) {
+  (0, _inherits2.default)(Simulation, _Component2);
+
+  function Simulation() {
+    (0, _classCallCheck2.default)(this, Simulation);
+    return (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(Simulation).apply(this, arguments));
+  }
+
+  (0, _createClass2.default)(Simulation, [{
+    key: "render",
+    value: function render() {
+      if (this.props.simulating) {
+        console.log(this.props.data);
+        return _react.default.createElement("table", {
+          className: "tableBorder",
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 27
+          },
+          __self: this
+        }, this.props.data.map(function (row) {
+          return _react.default.createElement("tr", {
+            __source: {
+              fileName: _jsxFileName,
+              lineNumber: 29
+            },
+            __self: this
+          }, row.map(function (item) {
+            return _react.default.createElement("td", {
+              __source: {
+                fileName: _jsxFileName,
+                lineNumber: 31
+              },
+              __self: this
+            }, _react.default.createElement(SimulationCar, {
+              car: item.cars,
+              __source: {
+                fileName: _jsxFileName,
+                lineNumber: 31
+              },
+              __self: this
+            }));
+          }));
+        }));
+      }
+
+      return _react.default.createElement("div", {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 41
+        },
+        __self: this
+      });
+    }
+  }]);
+  return Simulation;
+}(_react.Component);
+
+var _default = Simulation;
+exports.default = _default;
+},{"@babel/runtime/helpers/esm/classCallCheck":"../node_modules/@babel/runtime/helpers/esm/classCallCheck.js","@babel/runtime/helpers/esm/createClass":"../node_modules/@babel/runtime/helpers/esm/createClass.js","@babel/runtime/helpers/esm/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/esm/possibleConstructorReturn.js","@babel/runtime/helpers/esm/getPrototypeOf":"../node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js","@babel/runtime/helpers/esm/inherits":"../node_modules/@babel/runtime/helpers/esm/inherits.js","react":"../node_modules/react/index.js"}],"SimulationHandler.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -33975,6 +34118,8 @@ var _reactHookForm = _interopRequireDefault(require("react-hook-form"));
 
 var _socket = _interopRequireDefault(require("./socket"));
 
+var _Simulation = _interopRequireDefault(require("./Simulation"));
+
 var _jsxFileName = "/Users/vikranth/Documents/Software/berkeley/ee126/traffic_simulation/frontend/src/SimulationHandler.js";
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
@@ -33986,7 +34131,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function SimulationForm(props) {
   var _useForm = (0, _reactHookForm.default)({
     defaultValues: {
-      "sizeOfLane": 1
+      "sizeOfLane": 10,
+      "numVerticalLanes": 1,
+      "numHorizontalLanes": 1
     }
   }),
       register = _useForm.register,
@@ -33996,29 +34143,66 @@ function SimulationForm(props) {
   return _react.default.createElement("div", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 13
+      lineNumber: 16
     },
     __self: this
   }, _react.default.createElement("form", {
     onSubmit: handleSubmit(props.onSubmit),
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 14
+      lineNumber: 17
     },
     __self: this
-  }, _react.default.createElement("input", {
+  }, "Size Of Lane: ", _react.default.createElement("input", {
+    type: "number",
     name: "sizeOfLane",
     ref: register,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 15
+      lineNumber: 18
     },
     __self: this
-  }), " ", _react.default.createElement("input", {
+  }), " ", _react.default.createElement("br", {
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 19
+    },
+    __self: this
+  }), "Number of Horizontal Lanes: ", _react.default.createElement("input", {
+    type: "number",
+    name: "numHorizontalLanes",
+    ref: register,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 20
+    },
+    __self: this
+  }), " ", _react.default.createElement("br", {
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 22
+    },
+    __self: this
+  }), "Number of Vertical Lanes: ", _react.default.createElement("input", {
+    type: "number",
+    name: "numVerticalLanes",
+    ref: register,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 23
+    },
+    __self: this
+  }), " ", _react.default.createElement("br", {
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 25
+    },
+    __self: this
+  }), _react.default.createElement("input", {
     type: "submit",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 17
+      lineNumber: 26
     },
     __self: this
   })));
@@ -34062,20 +34246,38 @@ function (_Component) {
       _this.socket.emit('helloFromClient', 'hello server!');
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateSimulationState", function (data) {
-      console.log('hello from server! message:', data);
+      console.log("update simulation event");
+
+      _this.setState({
+        simulating: true,
+        simulationData: data.locations
+      });
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "completedSimulation", function () {
+      console.log("Simulation completed event");
+
+      _this.setState({
+        simulating: false
+      });
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startSimulation", function (event) {
       console.log('Starting SimulationHandler with params');
 
       _this.socket.emit('startSimulation', {
-        "sizeOfLane": event.sizeOfLane,
-        "id": _this.state.clientId
+        "event": "startSimulation",
+        "data": {
+          "id": _this.state.clientId,
+          "sizeOfLane": event.sizeOfLane,
+          "numHorizontalLanes": event.numHorizontalLanes,
+          "numVerticalLanes": event.numVerticalLanes
+        }
       });
     });
     _this.state = {
       connected: false,
       sizeOfLane: props.sizeOfLane,
       simulating: false,
+      simulationData: new Array([]),
       clientId: null
     };
     return _this;
@@ -34098,32 +34300,41 @@ function (_Component) {
 
       socket.on('identify', this.receiveIdentification); // Example event here would be
 
-      socket.on('update', this.updateSimulationState); // Example event here would be
+      socket.on('simulationUpdate', this.updateSimulationState); // Example event here would be
+
+      socket.on('completedSimulation', this.completedSimulation); // Example event here would be
     } // onConnect sets the state to true indicating the socket has connected
     //    successfully.
 
   }, {
     key: "render",
     value: function render() {
-      var input = '# This is a header\n\nAnd this is a paragraph';
       return _react.default.createElement("div", {
         className: "App",
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 101
+          lineNumber: 123
         },
         __self: this
-      }, _react.default.createElement("div", {
+      }, _react.default.createElement(_Simulation.default, {
+        simulating: this.state.simulating,
+        data: this.state.simulationData,
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 104
+          lineNumber: 124
+        },
+        __self: this
+      }), _react.default.createElement("div", {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 125
         },
         __self: this
       }, "Please Input Parameters for the simulation"), _react.default.createElement(SimulationForm, {
         onSubmit: this.startSimulation,
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 105
+          lineNumber: 126
         },
         __self: this
       }));
@@ -34134,7 +34345,7 @@ function (_Component) {
 
 var _default = SimulationHandler;
 exports.default = _default;
-},{"@babel/runtime/helpers/esm/classCallCheck":"../node_modules/@babel/runtime/helpers/esm/classCallCheck.js","@babel/runtime/helpers/esm/createClass":"../node_modules/@babel/runtime/helpers/esm/createClass.js","@babel/runtime/helpers/esm/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/esm/possibleConstructorReturn.js","@babel/runtime/helpers/esm/getPrototypeOf":"../node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js","@babel/runtime/helpers/esm/assertThisInitialized":"../node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js","@babel/runtime/helpers/esm/inherits":"../node_modules/@babel/runtime/helpers/esm/inherits.js","@babel/runtime/helpers/esm/defineProperty":"../node_modules/@babel/runtime/helpers/esm/defineProperty.js","react":"../node_modules/react/index.js","react-hook-form":"../node_modules/react-hook-form/dist/react-hook-form.es.js","./socket":"socket.js"}],"App.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/esm/classCallCheck":"../node_modules/@babel/runtime/helpers/esm/classCallCheck.js","@babel/runtime/helpers/esm/createClass":"../node_modules/@babel/runtime/helpers/esm/createClass.js","@babel/runtime/helpers/esm/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/esm/possibleConstructorReturn.js","@babel/runtime/helpers/esm/getPrototypeOf":"../node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js","@babel/runtime/helpers/esm/assertThisInitialized":"../node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js","@babel/runtime/helpers/esm/inherits":"../node_modules/@babel/runtime/helpers/esm/inherits.js","@babel/runtime/helpers/esm/defineProperty":"../node_modules/@babel/runtime/helpers/esm/defineProperty.js","react":"../node_modules/react/index.js","react-hook-form":"../node_modules/react-hook-form/dist/react-hook-form.es.js","./socket":"socket.js","./Simulation":"Simulation.js"}],"App.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -34157,21 +34368,21 @@ function App() {
     className: "App",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 10
+      lineNumber: 9
     },
     __self: this
   }, _react.default.createElement("div", {
     className: "Card title",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 11
+      lineNumber: 10
     },
     __self: this
   }, _react.default.createElement("div", {
     className: "titleText",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 12
+      lineNumber: 11
     },
     __self: this
   }, "EE126 Simulation"), _react.default.createElement("img", {
@@ -34179,13 +34390,13 @@ function App() {
     src: "/static/ee126_logo.png",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 13
+      lineNumber: 12
     },
     __self: this
   })), _react.default.createElement(_SimulationHandler.default, {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 15
+      lineNumber: 14
     },
     __self: this
   }));
@@ -34243,7 +34454,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49893" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49872" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

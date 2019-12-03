@@ -42,7 +42,7 @@ export default class Socket {
 
     // emit sends a message on a websocket.
     emit(name, data) {
-        const message = JSON.stringify({name, data});
+        const message = JSON.stringify({event: name, data: data});
         this.ws.send(message);
     }
 

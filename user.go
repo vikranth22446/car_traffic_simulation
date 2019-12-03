@@ -17,6 +17,7 @@ var (
 	// ErrNoWebsocket is the error when websocket fails
 	ErrNoWebsocket = errors.New(`don't have any websocket connection`)
 )
+
 // User object tracks the current connection and the current simulation
 type User struct {
 	ws     *websocket.Conn
@@ -25,8 +26,8 @@ type User struct {
 
 	group             *UserGroup
 	ID                uuid.UUID
-	simulationRunning bool
-	simulation        *SingleLaneSimulation
+	runningSimulation bool
+	simulation        *GeneralLaneSimulation
 }
 
 // Message is the struct to communicate to the client
@@ -66,6 +67,7 @@ func (user *User) write(data []byte) {
 	}
 	user.output <- data
 }
+
 // Is function checks if two users are the same
 func (user *User) Is(other *User) bool {
 	return user.ID == other.ID
@@ -82,53 +84,91 @@ func (user *User) identify() (error) {
 	return nil
 }
 
-func (user *User) runSimulation() {
-	if user.simulationRunning {
+func (user *User) runSimulation(config GeneralLaneSimulationConfig) {
+	if user.runningSimulation {
 		return
 	}
-	user.simulationRunning = true
+	user.runningSimulation = true
 
-	simulation := initSingleLaneSimulation(10)
+	simulation, err := initMultiLaneSimulation(config)
+	simulation.runningSimulation = true
+	if err != nil {
+		// TODO handle this
+	}
 	user.simulation = simulation
+	user.sendUpdatedSimulation()
 
-	go RunSingleLaneSimulation(simulation)
+	go RunGeneralSimulation(simulation)
 	for {
 		if !simulation.runningSimulation {
-			fmt.Println("SingleLaneSimulation completed")
+			fmt.Println("General Lane Simulation completed")
+			user.sendCompletedSimulation()
+			user.runningSimulation = false
 			return
 		}
 		select {
 		case <-simulation.drawUpdateChan:
 			user.sendUpdatedSimulation()
+			fmt.Println(user.simulation)
 			break
 		}
 	}
 }
 
-func (user *User) sendUpdatedSimulation() {
+//
+//func (user *User) runSingleSimulation() {
+//	if user.runningSimulation {
+//		return
+//	}
+//	user.runningSimulation = true
+//
+//	simulation := initSingleLaneSimulation(10)
+//	user.simulation = simulation
+//
+//	go RunSingleLaneSimulation(simulation)
+//	for {
+//		if !simulation.runningSimulation {
+//			fmt.Println("SingleLaneSimulation completed")
+//			return
+//		}
+//		select {
+//		case <-simulation.drawUpdateChan:
+//			user.sendUpdatedSimulation()
+//			break
+//		}
+//	}
+//}
 
-	//chunk := updateFn(user.ID, b)
-	// TODO Update game state and send message
-	//b := user.Serialize()
-	//if b != nil {
-	//
-	//	if user.sector != nil {
-	//		for p, _ := range user.sector.players {
-	//			if p.ws != nil && p.output != nil {
-	//				if user.isNear(p) == true {
-	//					p.write(chunk)
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
+func (user *User) sendCompletedSimulation() (error) {
+	message := Message{Event: completedSimulation, Data: "Completed"}
+	marshalledMessage, err := json.Marshal(message)
+	if err != nil {
+		return err
+		// TODO handle marshall err
+	}
+	user.write(marshalledMessage)
+	return nil
+}
 
+func (user *User) sendUpdatedSimulation() (error) {
+	jsonRes := user.simulation.getJsonRepresentation()
+	message := Message{Event: simulationUpdate, Data: jsonRes}
+	marshalledMessage, err := json.Marshal(message)
+	if err != nil {
+		return err
+		// TODO handle marshall err
+	}
+	user.write(marshalledMessage)
+	return nil
 }
 
 // Below this is to handle reading and sending message from websockets
 func (user *User) reader() {
 	var msg Message
 	for {
+		if user.ws == nil {
+			return
+		}
 		// read incoming message from socket
 		if err := user.ws.ReadJSON(&msg); err != nil {
 			log.Printf("socket read error: %v\n", err)
@@ -137,10 +177,11 @@ func (user *User) reader() {
 		if playerShowLog == true {
 			log.Printf("%s -> %s\n", user.ws.RemoteAddr(), msg.Event)
 		}
-
+		fmt.Println("message recieved")
+		fmt.Println(msg.Event)
 		// assign message to a function handler
 		if handler, found := user.group.FindHandler(msg.Event); found {
-			// send msg.id
+			// send msg.ID
 			handler(user.ws, msg.Data)
 		}
 	}
@@ -210,6 +251,12 @@ func (user *User) close() {
 		user.log("Closing websocket.")
 		user.ws.Close()
 		user.ws = nil
+		user.group.removePlayer(user)
+		if user.runningSimulation {
+			user.runningSimulation = false
+			user.simulation.cancelSimulation <- true
+			user.simulation = nil
+		}
 		user.log("Websocket closed.")
 	}
 

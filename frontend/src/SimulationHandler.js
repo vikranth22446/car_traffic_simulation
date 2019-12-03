@@ -1,19 +1,28 @@
 import React, {Component} from 'react';
 import useForm from "react-hook-form";
 import Socket from "./socket";
+import Simulation from './Simulation'
 
 function SimulationForm(props) {
     const {register, handleSubmit} = useForm({
         defaultValues: {
-            "sizeOfLane": 1
+            "sizeOfLane": 10,
+            "numVerticalLanes": 1,
+            "numHorizontalLanes": 1,
         }
     }); // initialise the hook
 
     return (
         <div>
             <form onSubmit={handleSubmit(props.onSubmit)}>
-                <input name="sizeOfLane" ref={register}/> {/* register an input */}
-
+                Size Of Lane: <input type={"number"} name="sizeOfLane" ref={register}/> {/* register an input */}
+                <br/>
+                Number of Horizontal Lanes: <input type={"number"} name="numHorizontalLanes"
+                                                   ref={register}/> {/* register an input */}
+                <br/>
+                Number of Vertical Lanes: <input type={"number"} name="numVerticalLanes"
+                                                 ref={register}/> {/* register an input */}
+                <br/>
                 <input type="submit"/>
             </form>
         </div>
@@ -34,7 +43,8 @@ class SimulationHandler extends Component {
             connected: false,
             sizeOfLane: props.sizeOfLane,
             simulating: false,
-            clientId: null
+            simulationData: new Array([]),
+            clientId: null,
         }
     }
 
@@ -54,7 +64,8 @@ class SimulationHandler extends Component {
         /* EVENT LISTENERS */
         // event listener to handle 'hello' from a server
         socket.on('identify', this.receiveIdentification); // Example event here would be
-        socket.on('update', this.updateSimulationState); // Example event here would be
+        socket.on('simulationUpdate', this.updateSimulationState); // Example event here would be
+        socket.on('completedSimulation', this.completedSimulation); // Example event here would be
     }
 
     // onConnect sets the state to true indicating the socket has connected
@@ -78,29 +89,39 @@ class SimulationHandler extends Component {
     helloFromClient = () => {
         console.log('saying hello...');
         this.socket.emit('helloFromClient', 'hello server!');
-    }
+    };
 
     // updateSimulationState is an event listener/consumer that handles hello messages
     //    from the backend server on the socket.
     updateSimulationState = (data) => {
-        console.log('hello from server! message:', data);
+        console.log("update simulation event");
+        this.setState({simulating: true, simulationData: data.locations});
+    };
+
+    completedSimulation = () => {
+        console.log("Simulation completed event");
+        this.setState({simulating: false})
     };
 
     startSimulation = (event) => {
         console.log('Starting SimulationHandler with params');
         this.socket.emit('startSimulation', {
-            "sizeOfLane": event.sizeOfLane,
-            "id": this.state.clientId
+            "event": "startSimulation",
+            "data": {
+                "id": this.state.clientId,
+                "sizeOfLane": event.sizeOfLane,
+                "numHorizontalLanes": event.numHorizontalLanes,
+                "numVerticalLanes": event.numVerticalLanes
+            }
         });
+
     };
 
 
     render() {
-        const input = '# This is a header\n\nAnd this is a paragraph'
         return (
             <div className="App">
-                {/*Add simulation based on update function*/}
-
+                <Simulation simulating={this.state.simulating} data={this.state.simulationData}/>
                 <div>Please Input Parameters for the simulation</div>
                 <SimulationForm onSubmit={this.startSimulation}/>
             </div>

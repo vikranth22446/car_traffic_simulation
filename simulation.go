@@ -27,6 +27,7 @@ type Simulation struct {
 	drawUpdateChan    chan bool
 	runningSimulation bool
 	config            SimulationConfig
+	cancelSimulation  chan bool
 }
 
 func (singleSim *Simulation) close() {

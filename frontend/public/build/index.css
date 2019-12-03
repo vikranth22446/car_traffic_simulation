@@ -60,4 +60,8 @@ code {
     height: 60px;
 }
 
+table, th, td {
+    border: 1px solid black;
+}
+
 /*# sourceMappingURL=/index.css.map */

@@ -1,23 +1,28 @@
 package main
 
 import (
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 )
 
 // UserGroup keeps track of the current weboscket connections
 type UserGroup struct {
-	users map[*User]bool
-	ids   map[uuid.UUID]*User
-	rules map[string]Handler
+	connUserMap map[*websocket.Conn]*User
+	users       map[*User]bool
+	ids         map[uuid.UUID]*User
+	rules       map[string]Handler
 }
 
 func newUserGroup() *UserGroup {
 	self := &UserGroup{}
 	self.users = map[*User]bool{}
 	self.rules = map[string]Handler{}
+	self.connUserMap = map[*websocket.Conn]*User{}
 	return self
 }
 
@@ -35,7 +40,7 @@ func (userGroup *UserGroup) AddEventHandler(event string, handler Handler) {
 func (userGroup *UserGroup) removePlayer(p *User) {
 	delete(userGroup.users, p)
 	delete(userGroup.ids, p.ID)
-	// close(p.send)
+	delete(userGroup.connUserMap, p.ws)
 	p.group = nil
 }
 
@@ -48,12 +53,45 @@ func init() {
 	if os.Getenv("DEBUG") != "" {
 		playerShowLog = true
 	}
+	userGroup.AddEventHandler("startSimulation", func(conn *websocket.Conn, data interface{}) {
+		fmt.Println("start Simulation event handler")
+
+		user, exists := userGroup.connUserMap[conn]
+		if exists {
+			config := GeneralLaneSimulationConfig{}
+
+			m := data.(map[string]interface{})["data"].(map[string]interface{})
+			//fmt.Println(m)
+			if sizeOfLane, ok := m["sizeOfLane"].(string); ok {
+				sizeOfLaneInt, err := strconv.Atoi(sizeOfLane)
+				if err != nil {
+					return
+				}
+				config.sizeOfLane = sizeOfLaneInt
+			}
+
+			if numHorizontalLanes, ok := m["numHorizontalLanes"].(string); ok {
+				numHorizontalLanesInt, err := strconv.Atoi(numHorizontalLanes)
+				if err != nil {
+					return
+				}
+				config.numHorizontalLanes = numHorizontalLanesInt
+			}
+
+			if numVerticalLanes, ok := m["numVerticalLanes"].(string); ok {
+				numVerticalLanesInt, err := strconv.Atoi(numVerticalLanes)
+				if err != nil {
+					return
+				}
+				config.numVerticalLanes = numVerticalLanesInt
+			}
+			user.runSimulation(config)
+		}
+	})
 	rand.Seed(time.Now().Unix())
 }
 
 func (userGroup *UserGroup) addUser(p *User) {
-	//var chunk []byte
-
 	p.group = userGroup
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
@@ -61,4 +99,5 @@ func (userGroup *UserGroup) addUser(p *User) {
 	}
 	p.ID = newUUID
 	userGroup.users[p] = true
+	userGroup.connUserMap[p.ws] = p
 }

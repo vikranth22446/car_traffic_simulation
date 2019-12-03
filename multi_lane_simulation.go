@@ -16,11 +16,11 @@ const (
 )
 
 type SmartCar struct {
-	id        string
-	speed     float64
-	x         int
-	y         int
-	direction Direction
+	ID        string
+	Speed     float64
+	X         int
+	Y         int
+	Direction Direction
 }
 
 type LocationState int
@@ -48,7 +48,7 @@ func (loc *StatefulLocation) addNCars(numCars int, direction Direction) {
 		} else {
 			id = fmt.Sprintf("vcar %d", i)
 		}
-		loc.Cars[id] = &SmartCar{id: id, direction: direction, x: -1, y: -1, speed: 3}
+		loc.Cars[id] = &SmartCar{ID: id, Direction: direction, X: -1, Y: -1, Speed: 3}
 	}
 }
 
@@ -69,9 +69,9 @@ func (loc *StatefulLocation) getCar(del bool) (*SmartCar) {
 }
 
 func (loc *StatefulLocation) addCar(car *SmartCar) {
-	car.x = loc.x
-	car.y = loc.y
-	loc.Cars[car.id] = car
+	car.X = loc.x
+	car.Y = loc.y
+	loc.Cars[car.ID] = car
 }
 
 type GeneralLaneSimulationConfig struct {
@@ -96,6 +96,29 @@ type GeneralLaneSimulation struct {
 	moveCarsOut chan Direction
 
 	carClock chan *SmartCar
+}
+type JsonGeneralLocation struct {
+	Cars map[string]SmartCar `json:"cars"` // Allows for easy removal of the car
+}
+type JsonGeneralLaneSimulation struct {
+	Locations [][]JsonGeneralLocation `json:"locations"`
+}
+
+func (sim *GeneralLaneSimulation) getJsonRepresentation() JsonGeneralLaneSimulation {
+	fmt.Println(sim.config)
+	fmt.Println(sim.config.sizeOfLane)
+	jsonGen := JsonGeneralLaneSimulation{Locations: make([][]JsonGeneralLocation, sim.config.sizeOfLane)}
+	for i := 0; i < sim.config.sizeOfLane; i++ {
+		jsonGen.Locations[i] = make([]JsonGeneralLocation, sim.config.sizeOfLane)
+		for j := 0; j < sim.config.sizeOfLane; j++ {
+			jsonGen.Locations[i][j] = JsonGeneralLocation{}
+			jsonGen.Locations[i][j].Cars = make(map[string]SmartCar, 0)
+			for k, v := range sim.Locations[i][j].Cars {
+				jsonGen.Locations[i][j].Cars[k] = *v
+			}
+		}
+	}
+	return jsonGen
 }
 
 func (sim *GeneralLaneSimulation) String() (string) {
@@ -128,7 +151,7 @@ func (sim *GeneralLaneSimulation) String() (string) {
 				fmt.Fprintf(&b, RightPad2Len("", "_", 8)+" ")
 			} else {
 				car := loc.getCar(false)
-				fmt.Fprintf(&b, RightPad2Len(car.id, " ", 8)+" ")
+				fmt.Fprintf(&b, RightPad2Len(car.ID, " ", 8)+" ")
 			}
 		}
 		fmt.Fprintf(&b, "\n")
@@ -248,7 +271,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 
 	go moveCarsThroughBinsDirection(moveCarsIn, Vertical, true, simulation.InVerticalRoot)
 	go moveCarsThroughBinsDirection(moveCarsOut, Vertical, false, simulation.OutHorizontalRoot)
-
+	fmt.Println("starting simulation")
 	for {
 		if len(simulation.OutHorizontalRoot.Cars) == simulation.config.sizeOfLane &&
 			len(simulation.OutVerticalRoot.Cars) == simulation.config.sizeOfLane {
@@ -330,19 +353,19 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 
 			break
 		case car := <-carClock:
-			currLoc := simulation.Locations[car.x][car.y]
+			currLoc := simulation.Locations[car.X][car.Y]
 			var nextLoc *StatefulLocation
 
-			if car.direction == Horizontal {
-				if car.y+1 == simulation.config.sizeOfLane {
+			if car.Direction == Horizontal {
+				if car.Y+1 == simulation.config.sizeOfLane {
 					break
 				}
-				nextLoc = simulation.Locations[car.x][car.y+1]
-			} else if car.direction == Vertical {
-				if car.x+1 == simulation.config.sizeOfLane {
+				nextLoc = simulation.Locations[car.X][car.Y+1]
+			} else if car.Direction == Vertical {
+				if car.X+1 == simulation.config.sizeOfLane {
 					break
 				}
-				nextLoc = simulation.Locations[car.x+1][car.y]
+				nextLoc = simulation.Locations[car.X+1][car.Y]
 			}
 
 			if len(nextLoc.Cars) != 0 {
@@ -358,15 +381,16 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 
 			drawUpdateChan <- true
 			break
+		case <-simulation.cancelSimulation:
+			return
 		}
 	}
 }
 
-
 // MoveCarInLane moves the car through a lane using an exponential clock and probability of movement
 func MoveSmartCarInLane(car *SmartCar, movementChan chan *SmartCar) {
 	p := 0.5
-	movementTime := rand.ExpFloat64() / car.speed
+	movementTime := rand.ExpFloat64() / car.Speed
 	select {
 	case <-time.After(time.Duration(movementTime) * time.Second):
 		if UniformRand() < p {
