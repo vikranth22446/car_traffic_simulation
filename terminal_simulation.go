@@ -5,6 +5,31 @@ import (
 	"time"
 )
 
+func RunTerminalMultiLaneSimulation() {
+	config := GeneralLaneSimulationConfig{
+		sizeOfLane:         10,
+		numHorizontalLanes: 1,
+		numVerticalLanes:   1,
+	}
+	simulation, err := initMultiLaneSimulation(config)
+	simulation.runningSimulation = true
+	if err != nil {
+		panic(err)
+	}
+	go RunGeneralSimulation(simulation)
+	for {
+		if !simulation.runningSimulation {
+			fmt.Println("MultiLane completed")
+			return
+		}
+		select {
+		case <-simulation.drawUpdateChan:
+			fmt.Println(simulation)
+			break
+		}
+	}
+}
+
 // RunTerminalSingleLaneSimulation simulates and prints the movement through a single lane
 func RunTerminalSingleLaneSimulation(action bool) {
 	simulation := initSingleLaneSimulation(10)

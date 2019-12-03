@@ -24,10 +24,18 @@ func commands(app *cli.App) {
 		},
 		{
 			Name:    "run-terminal-simulation",
-			Aliases: []string{"t"},
+			Aliases: []string{"single-t"},
 			Usage:   "Can run the simulation as terminal printouts",
 			Action: func(c *cli.Context) {
 				RunTerminalSingleLaneSimulation(true)
+			},
+		},
+		{
+			Name:    "General multi lane",
+			Aliases: []string{"t"},
+			Usage:   "Can run the simulation as terminal printouts",
+			Action: func(c *cli.Context) {
+				RunTerminalMultiLaneSimulation()
 			},
 		},
 	}

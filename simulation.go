@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 )
+
 // Car the main object that is moved through a lane
 type Car struct {
 	id      string
@@ -15,21 +16,29 @@ type Car struct {
 func (car *Car) String() string {
 	return car.id
 }
+
 // SimulationConfig is the config that is used in a simulation
 type SimulationConfig struct {
 	sizeOfLane int
 }
+
 // Simulation handles the channel to get updates from and the configuration
 type Simulation struct {
 	drawUpdateChan    chan bool
 	runningSimulation bool
 	config            SimulationConfig
 }
+
+func (singleSim *Simulation) close() {
+	singleSim.runningSimulation = false
+}
+
 // Lane holds a list of locations
 type Lane struct {
 	Locations  []Location
 	sizeOfLane int
 }
+
 // Location is one spot on a lane
 type Location struct {
 	Cars map[string]*Car // Allows for easy removal of the car
@@ -57,6 +66,7 @@ func moveCarsThroughBins(lane *Lane, movementChan chan *Lane, start bool) {
 		}
 	}
 }
+
 // MoveCarInLane moves the car through a lane using an exponential clock and probability of movement
 func MoveCarInLane(car *Car, movementChan chan *Car) {
 	p := 0.5
@@ -70,6 +80,7 @@ func MoveCarInLane(car *Car, movementChan chan *Car) {
 		go MoveCarInLane(car, movementChan)
 	}
 }
+
 //
 func getCarFromLocation(location *Location, del bool) (*Car) {
 	var currCar *Car

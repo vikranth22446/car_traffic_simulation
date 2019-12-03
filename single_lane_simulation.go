@@ -60,9 +60,7 @@ func initSingleLaneSimulation(sizeOfLane int) *SingleLaneSimulation {
 	return &simulation
 }
 
-func (singleSim *SingleLaneSimulation) close() {
-	singleSim.runningSimulation = false
-}
+
 // RunSingleLaneSimulation runs the simulation such that all the cars from bin 0 move to the last bin
 func RunSingleLaneSimulation(simulation *SingleLaneSimulation) {
 	defer simulation.close()
