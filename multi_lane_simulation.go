@@ -74,10 +74,51 @@ func (loc *StatefulLocation) addCar(car *SmartCar) {
 	loc.Cars[car.ID] = car
 }
 
+type CarDistributionType int
+
+const (
+	exponential CarDistributionType = iota
+	normal      CarDistributionType = iota
+	poisson     CarDistributionType = iota
+	constant    CarDistributionType = iota
+	uniform     CarDistributionType = iota
+)
+
 type GeneralLaneSimulationConfig struct {
 	sizeOfLane         int
 	numVerticalLanes   int
 	numHorizontalLanes int
+
+	inAlpha      float64
+	outBeta      float64
+	carMovementP float64
+
+	// multiple lanes
+	probSwitchingLanes float64
+
+	// Handles accidents
+	poissonProbAccident float64
+
+	// Handles different car rates
+	carClock                float64 // for uniform, defaults to start of range
+	carClockUniformEndRange float64
+	CarDistributionType     CarDistributionType
+
+	// handles cars going to fast
+	carPoliceCutoff    float64
+	probPolicePullOver float64
+
+	// parking
+	parkingEnabled          bool
+	distractionRate         float64 // to get into parking
+	parkingCutoff           float64 // number of cars in parking
+	pedestrianDeathAccident float64
+
+	// intersection
+	probEnteringIntersection float64
+	intersectionAccident     float64 // if unspecified the same as regular accident probability
+	accidentScaling          bool    // increase probability proportional to number of cars near the next location
+
 }
 
 // GeneralLaneSimulation handles a general simulation with n horizontal lanes and n vertical lanes and intersections
@@ -167,11 +208,19 @@ func medianBasedRange(laneSize int, numLanes int) (int, int) {
 
 func (sim *GeneralLaneSimulation) horizontalIndexRange() (int, int) {
 	config := sim.config
+	if config.numHorizontalLanes%2 == 0 {
+		left, right := medianBasedRange(config.sizeOfLane-1, config.numHorizontalLanes)
+		return left - 1, right
+	}
 	return medianBasedRange(config.sizeOfLane, config.numHorizontalLanes)
 }
 
 func (sim *GeneralLaneSimulation) verticalIndexRange() (int, int) {
 	config := sim.config
+	if config.numVerticalLanes%2 == 0 {
+		left, right := medianBasedRange(config.sizeOfLane-1, config.numVerticalLanes)
+		return left - 1, right
+	}
 	return medianBasedRange(config.sizeOfLane, config.numVerticalLanes)
 }
 
