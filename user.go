@@ -166,6 +166,8 @@ func (user *User) sendUpdatedSimulation() (error) {
 
 // Below this is to handle reading and sending message from websockets
 func (user *User) reader() {
+	defer user.close()
+
 	var msg Message
 	for {
 		if user.ws == nil {
@@ -189,7 +191,6 @@ func (user *User) reader() {
 	}
 
 	user.log("Exiting reader.")
-	user.close()
 }
 func (user *User) Write(p []byte) (n int, err error) {
 
@@ -245,23 +246,23 @@ func (user *User) writer() {
 }
 
 func (user *User) close() {
+	if user == nil {
+		return
+	}
 	if user.ws != nil {
-		user.log("Closing websocket.")
 		user.ws.Close()
 		user.ws = nil
 		user.group.removePlayer(user)
-		if user.runningSimulation {
-			user.runningSimulation = false
-			user.simulation.cancelSimulation <- true
-			user.simulation = nil
-		}
-		user.log("Websocket closed.")
+	}
+
+	if user.runningSimulation {
+		user.runningSimulation = false
+		user.simulation.cancelSimulation <- true
+		user.simulation = nil
 	}
 
 	if user.output != nil {
-		user.log("Closing channel.")
 		close(user.output)
 		user.output = nil
-		user.log("Channel closed.")
 	}
 }

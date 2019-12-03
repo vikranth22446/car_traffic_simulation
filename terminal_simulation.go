@@ -6,11 +6,8 @@ import (
 )
 
 func RunTerminalMultiLaneSimulation() {
-	config := GeneralLaneSimulationConfig{
-		sizeOfLane:         10,
-		numHorizontalLanes: 1,
-		numVerticalLanes:   1,
-	}
+	config := DefaultGeneralLaneConfig()
+
 	simulation, err := initMultiLaneSimulation(config)
 	simulation.runningSimulation = true
 	if err != nil {

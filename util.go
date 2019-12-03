@@ -48,14 +48,17 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		fs.ServeHTTP(w, r)
 	}))
 }
+func UniformRandMinMax(min float64, max float64) float64 {
+	rnd := rand.Float64()
+	return rnd*(max-min) + min
+}
 
 // UniformRand randomly picks something from 0 to 1
 func UniformRand() float64 {
-	rnd := rand.Float64()
 	max := 1.0
 	min := 0.0
+	return UniformRandMinMax(min, max)
 
-	return rnd*(max-min) + min
 }
 
 // RightPad2Len pads a string to a certain length for better printing
