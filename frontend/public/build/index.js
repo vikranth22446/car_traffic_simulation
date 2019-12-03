@@ -33932,12 +33932,10 @@ function () {
   }, {
     key: "message",
     value: function message(e) {
-      console.log(e.data);
-
       try {
         var message = JSON.parse(e.data); // Sends a message to local client
 
-        console.log("message received", message);
+        console.log("message received", message.event);
         this.ee.emit(message.event, message.data);
       } catch (err) {
         this.ee.emit('error', err);
@@ -34001,30 +33999,59 @@ function (_Component) {
       }
 
       if (items.length !== 0) {
-        return _react.default.createElement("div", {
+        return _react.default.createElement("td", {
           __source: {
             fileName: _jsxFileName,
             lineNumber: 13
+          },
+          __self: this
+        }, _react.default.createElement("div", {
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 14
           },
           __self: this
         }, items.map(function (item) {
           return _react.default.createElement("div", {
             __source: {
               fileName: _jsxFileName,
-              lineNumber: 15
+              lineNumber: 16
             },
             __self: this
-          }, item.name);
+          }, "\uD83D\uDE97", item.name);
+        })));
+      }
+
+      if (this.props.locationState === 0) {
+        return _react.default.createElement("td", {
+          className: "empty",
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 23
+          },
+          __self: this
+        }, _react.default.createElement("div", {
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 24
+          },
+          __self: this
         }));
       }
 
-      return _react.default.createElement("div", {
+      return _react.default.createElement("td", {
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 19
+          lineNumber: 28
         },
         __self: this
-      }, "\xA0\xA0\xA0\xA0");
+      }, _react.default.createElement("div", {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 29
+        },
+        __self: this
+      }, "\xA0\xA0\xA0\xA0"));
     }
   }]);
   return SimulationCar;
@@ -34049,31 +34076,26 @@ function (_Component2) {
           className: "tableBorder",
           __source: {
             fileName: _jsxFileName,
-            lineNumber: 27
+            lineNumber: 38
           },
           __self: this
         }, this.props.data.map(function (row) {
           return _react.default.createElement("tr", {
             __source: {
               fileName: _jsxFileName,
-              lineNumber: 29
+              lineNumber: 40
             },
             __self: this
           }, row.map(function (item) {
-            return _react.default.createElement("td", {
-              __source: {
-                fileName: _jsxFileName,
-                lineNumber: 31
-              },
-              __self: this
-            }, _react.default.createElement(SimulationCar, {
+            return _react.default.createElement(SimulationCar, {
+              locationState: item.state,
               car: item.cars,
               __source: {
                 fileName: _jsxFileName,
-                lineNumber: 31
+                lineNumber: 42
               },
               __self: this
-            }));
+            });
           }));
         }));
       }
@@ -34081,7 +34103,7 @@ function (_Component2) {
       return _react.default.createElement("div", {
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 41
+          lineNumber: 52
         },
         __self: this
       });

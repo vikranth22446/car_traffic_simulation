@@ -10,13 +10,24 @@ class SimulationCar extends Component {
         }
         if (items.length !== 0) {
             return (
-                <div>
+                <td>
+                    <div>
 
-                    {items.map(item => <div>{item.name}</div>)}
-                </div>
+                        {items.map(item => <div>🚗{item.name}</div>)}
+                    </div>
+                </td>
             );
         }
-        return <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+
+        if (this.props.locationState === 0) {
+            return <td className={"empty"}>
+                <div></div>
+            </td>
+        }
+
+        return <td>
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+        </td>
     }
 }
 
@@ -28,7 +39,7 @@ class Simulation extends Component {
                 {this.props.data.map(row => {
                     return <tr>
                         {row.map(item => {
-                            return <td><SimulationCar car={item.cars}/></td>
+                            return <SimulationCar locationState={item.state} car={item.cars}/>
                         })}
                         {/*<td key={row.name}>{row.name}</td>*/}
                         {/*<td key={row.id}>{row.id}</td>*/}

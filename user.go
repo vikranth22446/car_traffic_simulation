@@ -217,12 +217,11 @@ func (user *User) writer() {
 
 		start = time.Now().UnixNano()
 
-		for {
-			select {
-			case message := <-user.output:
-				buf = append(buf, message...)
-				break
-			}
+		select {
+		case message := <-user.output:
+			buf = append(buf, message...)
+			break
+
 		}
 
 		if len(buf) > 0 {

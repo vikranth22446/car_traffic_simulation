@@ -35,7 +35,7 @@ const (
 // Location is one spot on a lane
 type StatefulLocation struct {
 	Cars          map[string]*SmartCar // Allows for easy removal of the car
-	locationState LocationState
+	LocationState LocationState
 	x             int
 	y             int
 }
@@ -98,21 +98,21 @@ type GeneralLaneSimulation struct {
 	carClock chan *SmartCar
 }
 type JsonGeneralLocation struct {
-	Cars map[string]SmartCar `json:"cars"` // Allows for easy removal of the car
+	Cars          map[string]SmartCar `json:"cars"` // Allows for easy removal of the car
+	LocationState LocationState       `json:"state"`
 }
 type JsonGeneralLaneSimulation struct {
 	Locations [][]JsonGeneralLocation `json:"locations"`
 }
 
 func (sim *GeneralLaneSimulation) getJsonRepresentation() JsonGeneralLaneSimulation {
-	fmt.Println(sim.config)
-	fmt.Println(sim.config.sizeOfLane)
 	jsonGen := JsonGeneralLaneSimulation{Locations: make([][]JsonGeneralLocation, sim.config.sizeOfLane)}
 	for i := 0; i < sim.config.sizeOfLane; i++ {
 		jsonGen.Locations[i] = make([]JsonGeneralLocation, sim.config.sizeOfLane)
 		for j := 0; j < sim.config.sizeOfLane; j++ {
 			jsonGen.Locations[i][j] = JsonGeneralLocation{}
 			jsonGen.Locations[i][j].Cars = make(map[string]SmartCar, 0)
+			jsonGen.Locations[i][j].LocationState = sim.Locations[i][j].LocationState
 			for k, v := range sim.Locations[i][j].Cars {
 				jsonGen.Locations[i][j].Cars[k] = *v
 			}
@@ -201,7 +201,7 @@ func initMultiLaneSimulation(config GeneralLaneSimulationConfig) (*GeneralLaneSi
 	for i := range locations {
 		locations[i] = make([]*StatefulLocation, sizeOfLane)
 		for j := 0; j < sizeOfLane; j++ {
-			locations[i][j] = &StatefulLocation{locationState: Empty, Cars: make(map[string]*SmartCar)}
+			locations[i][j] = &StatefulLocation{LocationState: Empty, Cars: make(map[string]*SmartCar)}
 			locations[i][j].x = i
 			locations[i][j].y = j
 		}
@@ -211,7 +211,7 @@ func initMultiLaneSimulation(config GeneralLaneSimulationConfig) (*GeneralLaneSi
 	horizontalStartIndex, horizontalEndIndex := simulation.horizontalIndexRange()
 	for i := horizontalStartIndex; i <= horizontalEndIndex; i++ {
 		for j := 0; j < sizeOfLane; j++ {
-			locations[i][j].locationState = LaneLoc
+			locations[i][j].LocationState = LaneLoc
 			locations[i][j].Cars = make(map[string]*SmartCar, 0)
 		}
 	}
@@ -226,11 +226,11 @@ func initMultiLaneSimulation(config GeneralLaneSimulationConfig) (*GeneralLaneSi
 	verticalStartIndex, verticalEndIndex := simulation.verticalIndexRange()
 	for i := 0; i < sizeOfLane; i++ {
 		for j := verticalStartIndex; j <= verticalEndIndex; j++ {
-			if locations[i][j].locationState == LaneLoc {
-				locations[i][j].locationState = Intersection
+			if locations[i][j].LocationState == LaneLoc {
+				locations[i][j].LocationState = Intersection
 				// If it is already on the horizontal path then send in update
 			} else {
-				locations[i][j].locationState = LaneLoc
+				locations[i][j].LocationState = LaneLoc
 			}
 		}
 	}
