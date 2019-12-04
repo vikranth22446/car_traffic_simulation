@@ -68,4 +68,10 @@ table, th, td {
     background-color: white;
 }
 
+.dataform {
+    text-align: left;
+    align-items: flex-start;
+
+}
+
 /*# sourceMappingURL=/index.css.map */

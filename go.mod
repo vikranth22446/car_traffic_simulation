@@ -32,6 +32,6 @@ require (
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933 // indirect
 	golang.org/x/tools v0.0.0-20191130070609-6e064ea0cf2d // indirect
-	gonum.org/v1/gonum v0.6.1 // indirect
+	gonum.org/v1/gonum v0.6.1
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )

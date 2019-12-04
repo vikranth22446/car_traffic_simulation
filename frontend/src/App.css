@@ -54,3 +54,9 @@ table, th, td {
 .empty {
     background-color: white;
 }
+
+.dataform {
+    text-align: left;
+    align-items: flex-start;
+
+}

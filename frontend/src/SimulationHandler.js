@@ -1,30 +1,226 @@
 import React, {Component} from 'react';
 import useForm from "react-hook-form";
+import {RHFInput} from 'react-hook-form-input';
 import Socket from "./socket";
 import Simulation from './Simulation'
+// import Select from 'react-select';
+import {Checkbox, MenuItem, Select} from '@material-ui/core';
+import Input from "@material-ui/core/Input";
+
+function LaneChoice(props) {
+    var options = [
+        {value: 0, label: 'uniform Lane choice'},
+        {value: 1, label: 'trafficBasedChoice'},
+    ];
+    return <div> {props.name}: <RHFInput
+        as={<Select>
+            {options.map(option => <MenuItem value={option.value}>{option.label}</MenuItem>)}
+        </Select>}
+        rules={{required: true}}
+        name={props.name}
+        register={props.register}
+        setValue={props.setValue}
+    /></div>
+}
+
+function CarDistributionType(props) {
+    var options = [
+        {value: 0, label: 'exponentialDistribution'},
+        {value: 1, label: 'normalDistribution'},
+        {value: 2, label: 'poissonDistribution'},
+        {value: 3, label: 'constantDistribution'},
+        {value: 4, label: 'uniformDistribution'},
+    ];
+    return <div> {props.name}: <RHFInput
+        as={<Select options={options}/>}
+        rules={{required: true}}
+        name={props.name}
+        register={props.register}
+        setValue={props.setValue}
+    /></div>
+}
 
 function SimulationForm(props) {
-    const {register, handleSubmit} = useForm({
+    const {register, handleSubmit, setValue} = useForm({
         defaultValues: {
             "sizeOfLane": 10,
             "numVerticalLanes": 1,
             "numHorizontalLanes": 1,
+            'inAlpha': 1,
+            'outBeta': 1,
+            'carMovementP': 0.5,
+            'probSwitchingLanes': 0.1,
+            'accidentProb': 0,
+            'numHorizontalCars': 10,
+            'numVerticalCars': 10,
+            'inLaneChoice': 0,
+            'outLaneChoice': 0,
+            'laneSwitchChoice': 0,
+            'carRemovalRate': 0,
+            'carRestartRate': 1,
+            'carClock': 1,
+            'carSpeedUniformEndRange': 0,
+            'CarDistributionType': 0,
+            'reSampleSpeedEveryClk': true,
+            'probPolicePullOverProb': 0.01,
+            'speedBasedPullOver': false,
+            'parkingEnabled': false,
+            'distractionRate': 0,
+            'parkingTimeRate': 1,
+            'parkingProbCutoff': 0,
+            'crossWalkCutoff': 2,
+            'crossWalkEnabled': false,
+            'pedestrianDeathAccidentProb': 0.5,
+            'probEnteringIntersection': 1,
+            'intersectionAccidentRate': 0.5,
+            'accidentScaling': true,
+            'slowDownSpeed': 1
         }
     }); // initialise the hook
 
     return (
         <div>
-            <form onSubmit={handleSubmit(props.onSubmit)}>
-                Size Of Lane: <input type={"number"} name="sizeOfLane" ref={register}/> {/* register an input */}
+            {props.simulating && <button onClick={props.cancelSimulation}>Stop Simulation</button>}
+            <form onSubmit={handleSubmit(props.onSubmit)} className={"dataform"}>
+                <input type="submit" disabled={props.simulating} value={"Submit"}/>
                 <br/>
-                Number of Horizontal Lanes: <input type={"number"} name="numHorizontalLanes"
-                                                   ref={register}/> {/* register an input */}
+                Size Of Lane: <Input type={"number"} name="sizeOfLane" inputRef={register}/> {/* register an input */}
                 <br/>
-                Number of Vertical Lanes: <input type={"number"} name="numVerticalLanes"
-                                                 ref={register}/> {/* register an input */}
+                Number of Horizontal Lanes: <Input type={"number"} name="numHorizontalLanes"
+                                                   inputRef={register}/> {/* register an input */}
                 <br/>
-                <input type="submit"/>
+                Number of Vertical Lanes: <Input type={"number"} name="numVerticalLanes"
+                                                 inputRef={register}/> {/* register an input */}
+                <br/>
+                inAlpha: <Input type={"number"} name="inAlpha"
+                                inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                outBeta: <Input type={"number"} name="outBeta"
+                                inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                carMovementP: <Input type={"number"} name="carMovementP"
+                                     inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                numHorizontalCars: <Input type={"number"} name="numHorizontalCars"
+                                          inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                numVerticalCars: <Input type={"number"} name="numVerticalCars"
+                                        inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                <LaneChoice name={"inLaneChoice"} register={register} setValue={setValue}/>
+                <br/>
+                <LaneChoice name={"outLaneChoice"} register={register} setValue={setValue}/>
+                <br/>
+
+                probSwitchingLanes: <Input type={"number"} name="probSwitchingLanes"
+                                           inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                <LaneChoice name={"laneSwitchChoice"} register={register}/>
+
+                <br/>
+                accidentProb: <Input type={"number"} name="accidentProb"
+                                     inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+                carRemovalRate: <Input type={"number"} name="carRemovalRate"
+                                       inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                carRestartRate: <Input type={"number"} name="carRestartRate"
+                                       inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+                carClock: <Input type={"number"} name="carClock"
+                                 inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+                carSpeedUniformEndRange: <Input type={"number"} name="carSpeedUniformEndRange"
+                                                inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+                <CarDistributionType name={"CarDistributionType"} register={register} setValue={setValue}/>
+                <br/>
+
+                reSampleSpeedEveryClk:
+                <RHFInput
+                    as={<Checkbox/>}
+                    name="reSampleSpeedEveryClk"
+                    type="checkbox"
+                    register={register}
+                    setValue={setValue}
+                />
+                <br/>
+
+                probPolicePullOverProb: <Input type={"number"} name="probPolicePullOverProb"
+                                               inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                speedBasedPullOver:
+                <RHFInput
+                    as={<Checkbox/>}
+                    name="speedBasedPullOver"
+                    type="checkbox"
+                    register={register}
+                    setValue={setValue}
+                />
+                <br/>
+
+                parkingEnabled:
+                <RHFInput
+                    as={<Checkbox/>}
+                    name="parkingEnabled"
+                    type="checkbox"
+                    register={register}
+                    setValue={setValue}
+                />
+                <br/>
+                distractionRate: <Input type={"number"} name="distractionRate"
+                                        inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                parkingTimeRate: <Input type={"number"} name="parkingTimeRate"
+                                        inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                parkingProbCutoff: <Input type={"number"} name="parkingProbCutoff"
+                                          inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                crossWalkCutoff: <Input type={"number"} name="crossWalkCutoff"
+                                        inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+                crossWalkEnabled:
+                <RHFInput
+                    as={<Checkbox/>}
+                    name="crossWalkEnabled"
+                    type="checkbox"
+                    register={register}
+                    setValue={setValue}
+                />
+                <br/>
+
+                pedestrianDeathAccidentProb: <Input type={"number"} name="pedestrianDeathAccidentProb"
+                                                    inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+                probEnteringIntersection: <Input type={"number"} name="probEnteringIntersection"
+                                                 inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                intersectionAccidentRate: <Input type={"number"} name="intersectionAccidentRate"
+                                                 inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+                accidentScaling:
+                <RHFInput
+                    as={<Checkbox/>}
+                    name="accidentScaling"
+                    type="checkbox"
+                    register={register}
+                    setValue={setValue}
+                />
+                <br/>
+                slowDownSpeed: <Input type={"number"} name="slowDownSpeed"
+                                      inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+                <input type="submit" disabled={props.simulating} value={"Submit"}/>
             </form>
+
         </div>
     )
 }
@@ -103,6 +299,11 @@ class SimulationHandler extends Component {
         this.setState({simulating: false})
     };
 
+    cancelSimulation = () => {
+        this.setState({simulating: false})
+        this.socket.emit('cancelSimulation', 'cancel simulation');
+    }
+
     startSimulation = (event) => {
         console.log('Starting SimulationHandler with params');
         this.socket.emit('startSimulation', {
@@ -123,7 +324,8 @@ class SimulationHandler extends Component {
             <div className="App">
                 <Simulation simulating={this.state.simulating} data={this.state.simulationData}/>
                 <div>Please Input Parameters for the simulation</div>
-                <SimulationForm onSubmit={this.startSimulation}/>
+                <SimulationForm onSubmit={this.startSimulation} simulating={this.state.simulating}
+                                cancelSimulation={this.cancelSimulation}/>
             </div>
         );
     }

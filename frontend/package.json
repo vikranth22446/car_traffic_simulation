@@ -3,13 +3,16 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
+		"@material-ui/core": "^4.7.1",
 		"connect-multiparty": "^2.2.0",
 		"formidable": "^1.2.1",
-		"react": "^16.12.0",
+		"react": "^16.8.0",
 		"react-dom": "^0.14.0 || ^15.0.0 || ^16",
-		"react-hook-form": "^3.28.10",
+		"react-hook-form": "^3.28.0",
+		"react-hook-form-input": "^1.1.1",
 		"react-markdown": "^4.2.2",
-		"react-modal": "^3.10.1"
+		"react-modal": "^3.10.1",
+		"react-select": "^3.0.8"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.4.3",

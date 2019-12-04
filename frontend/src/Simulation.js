@@ -33,23 +33,15 @@ class SimulationCar extends Component {
 
 class Simulation extends Component {
     render() {
-        if (this.props.simulating) {
-            console.log(this.props.data);
-            return <table className={"tableBorder"}>
-                {this.props.data.map(row => {
-                    return <tr>
-                        {row.map(item => {
-                            return <SimulationCar locationState={item.state} car={item.cars}/>
-                        })}
-                        {/*<td key={row.name}>{row.name}</td>*/}
-                        {/*<td key={row.id}>{row.id}</td>*/}
-                        {/*<td key={row.price}>{row.price}</td>*/}
-                    </tr>
-                })}
-            </table>
-        }
-
-        return <div></div>
+        return <table className={"tableBorder"}>
+            {this.props.data.map(row => {
+                return <tr>
+                    {row.map(item => {
+                        return <SimulationCar locationState={item.state} car={item.cars}/>
+                    })}
+                </tr>
+            })}
+        </table>
     }
 }
 

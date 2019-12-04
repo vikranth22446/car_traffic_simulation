@@ -171,11 +171,27 @@ type CarDistributionType int
 
 const (
 	exponentialDistribution CarDistributionType = iota
-	normalDistribution      CarDistributionType = iota
-	poissonDistribution     CarDistributionType = iota
-	constantDistribution    CarDistributionType = iota
-	uniformDistribution     CarDistributionType = iota
+	normalDistribution
+	poissonDistribution
+	constantDistribution
+	uniformDistribution
 )
+
+func convertToCarDistributionType(item int) CarDistributionType {
+	switch item {
+	case 0:
+		return exponentialDistribution
+	case 1:
+		return normalDistribution
+	case 2:
+		return poissonDistribution
+	case 3:
+		return constantDistribution
+	case 4:
+		return uniformDistribution
+	}
+	return uniformDistribution
+}
 
 type LaneChoice int
 
@@ -183,6 +199,16 @@ const (
 	trafficBasedChoice LaneChoice = iota
 	uniformLaneChoice
 )
+
+func convertIntLaneChoice(item int) LaneChoice {
+	switch item {
+	case 0:
+		return uniformLaneChoice
+	case 1:
+		return trafficBasedChoice
+	}
+	return uniformLaneChoice
+}
 
 type GeneralLaneSimulationConfig struct {
 	sizeOfLane         int
@@ -206,7 +232,7 @@ type GeneralLaneSimulationConfig struct {
 	laneSwitchChoice   LaneChoice
 
 	// Handles accidents
-	poissonProbCutoffProb float64
+	accidentProb float64
 
 	carRemovalRate float64 // exponential time
 	carRestartRate float64 // car restart rate
@@ -259,7 +285,7 @@ func DefaultGeneralLaneConfig() GeneralLaneSimulationConfig {
 
 	config.probSwitchingLanes = 0
 
-	config.poissonProbCutoffProb = 0
+	config.accidentProb = 0
 
 	config.carClock = 1
 	config.CarDistributionType = constantDistribution
@@ -604,6 +630,8 @@ func (sim *GeneralLaneSimulation) RandomlyPickLocation(lanes []*StatefulLocation
 // RunSingleLaneSimulation runs the simulation such that all the cars from bin 0 move to the last bin
 func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 	defer simulation.close()
+	defer func() { simulation.runningSimulation = false }()
+	simulation.runningSimulation = true
 
 	moveCarsIn := simulation.moveCarsIn
 	moveCarsOut := simulation.moveCarsOut
@@ -747,7 +775,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 				if nextLoc.LocationState == Intersection && simulation.config.intersectionAccidentRate != 0 {
 					poisson = distuv.Poisson{Lambda: simulation.config.intersectionAccidentRate}
 				}
-				accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.poissonProbCutoffProb
+				accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.accidentProb
 
 				if simulation.config.accidentScaling {
 					numCarsNearby := simulation.countNumCarsNearby(nextLoc)
@@ -755,7 +783,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 						if accidentOccurs {
 							break
 						}
-						accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.poissonProbCutoffProb
+						accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.accidentProb
 					}
 				}
 
@@ -856,6 +884,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			slowCar.car.slowingDown = false
 			slowCar.car.Speed = slowCar.oldSpeed
 		case <-simulation.cancelSimulation:
+			simulation.runningSimulation = false
 			return
 		}
 	}

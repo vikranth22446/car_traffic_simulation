@@ -91,7 +91,6 @@ func (user *User) runSimulation(config GeneralLaneSimulationConfig) {
 	user.runningSimulation = true
 
 	simulation, err := initMultiLaneSimulation(config)
-	simulation.runningSimulation = true
 	if err != nil {
 		// TODO handle this
 	}
@@ -102,8 +101,10 @@ func (user *User) runSimulation(config GeneralLaneSimulationConfig) {
 	for {
 		if !simulation.runningSimulation {
 			fmt.Println("General Lane Simulation completed")
-			user.sendCompletedSimulation()
-			user.runningSimulation = false
+			if user.runningSimulation {
+				user.sendCompletedSimulation() // only send completed if already running
+				user.runningSimulation = false
+			}
 			return
 		}
 		select {
