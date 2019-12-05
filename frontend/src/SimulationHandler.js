@@ -32,7 +32,9 @@ function CarDistributionType(props) {
         {value: 4, label: 'uniformDistribution'},
     ];
     return <div> {props.name}: <RHFInput
-        as={<Select options={options}/>}
+        as={<Select>
+            {options.map(option => <MenuItem value={option.value}>{option.label}</MenuItem>)}
+        </Select>}
         rules={{required: true}}
         name={props.name}
         register={props.register}
@@ -56,8 +58,8 @@ function SimulationForm(props) {
             'inLaneChoice': 0,
             'outLaneChoice': 0,
             'laneSwitchChoice': 0,
-            'carRemovalRate': 0,
-            'carRestartRate': 1,
+            'carRemovalRate': 1,
+            'carRestartProb': 0.25,
             'carClock': 1,
             'carSpeedUniformEndRange': 0,
             'CarDistributionType': 0,
@@ -67,12 +69,11 @@ function SimulationForm(props) {
             'parkingEnabled': false,
             'distractionRate': 0,
             'parkingTimeRate': 1,
-            'parkingProbCutoff': 0,
             'crossWalkCutoff': 2,
             'crossWalkEnabled': false,
             'pedestrianDeathAccidentProb': 0.5,
             'probEnteringIntersection': 1,
-            'intersectionAccidentRate': 0.5,
+            'intersectionAccidentProb': 0.5,
             'accidentScaling': true,
             'slowDownSpeed': 1
         }
@@ -80,31 +81,31 @@ function SimulationForm(props) {
 
     return (
         <div>
-            {props.simulating && <button onClick={props.cancelSimulation}>Stop Simulation</button>}
+            {/*{props.simulating && <button onClick={props.cancelSimulation}>Stop Simulation</button>}*/}
             <form onSubmit={handleSubmit(props.onSubmit)} className={"dataform"}>
                 <input type="submit" disabled={props.simulating} value={"Submit"}/>
                 <br/>
-                Size Of Lane: <Input type={"number"} name="sizeOfLane" inputRef={register}/> {/* register an input */}
+                Size Of Lane: <Input type={"text"} name="sizeOfLane" inputRef={register}/> {/* register an input */}
                 <br/>
-                Number of Horizontal Lanes: <Input type={"number"} name="numHorizontalLanes"
+                Number of Horizontal Lanes: <Input type={"text"} name="numHorizontalLanes"
                                                    inputRef={register}/> {/* register an input */}
                 <br/>
-                Number of Vertical Lanes: <Input type={"number"} name="numVerticalLanes"
+                Number of Vertical Lanes: <Input type={"text"} name="numVerticalLanes"
                                                  inputRef={register}/> {/* register an input */}
                 <br/>
-                inAlpha: <Input type={"number"} name="inAlpha"
+                inAlpha: <Input type={"text"} name="inAlpha"
                                 inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                outBeta: <Input type={"number"} name="outBeta"
+                outBeta: <Input type={"text"} name="outBeta"
                                 inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                carMovementP: <Input type={"number"} name="carMovementP"
+                carMovementP: <Input type={"text"} name="carMovementP"
                                      inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                numHorizontalCars: <Input type={"number"} name="numHorizontalCars"
+                numHorizontalCars: <Input type={"text"} name="numHorizontalCars"
                                           inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                numVerticalCars: <Input type={"number"} name="numVerticalCars"
+                numVerticalCars: <Input type={"text"} name="numVerticalCars"
                                         inputRef={register} step="any"/> {/* register an input */}
                 <br/>
                 <LaneChoice name={"inLaneChoice"} register={register} setValue={setValue}/>
@@ -112,28 +113,28 @@ function SimulationForm(props) {
                 <LaneChoice name={"outLaneChoice"} register={register} setValue={setValue}/>
                 <br/>
 
-                probSwitchingLanes: <Input type={"number"} name="probSwitchingLanes"
+                probSwitchingLanes: <Input type={"text"} name="probSwitchingLanes"
                                            inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                <LaneChoice name={"laneSwitchChoice"} register={register}/>
+                <LaneChoice name={"laneSwitchChoice"} register={register} setValue={setValue}/>
 
                 <br/>
-                accidentProb: <Input type={"number"} name="accidentProb"
+                accidentProb: <Input type={"text"} name="accidentProb"
                                      inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
-                carRemovalRate: <Input type={"number"} name="carRemovalRate"
+                carRemovalRate: <Input type={"text"} name="carRemovalRate"
                                        inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                carRestartRate: <Input type={"number"} name="carRestartRate"
+                carRestartProb: <Input type={"text"} name="carRestartProb"
                                        inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
-                carClock: <Input type={"number"} name="carClock"
+                carClock: <Input type={"text"} name="carClock"
                                  inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
-                carSpeedUniformEndRange: <Input type={"number"} name="carSpeedUniformEndRange"
+                carSpeedUniformEndRange: <Input type={"text"} name="carSpeedUniformEndRange"
                                                 inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
@@ -150,7 +151,7 @@ function SimulationForm(props) {
                 />
                 <br/>
 
-                probPolicePullOverProb: <Input type={"number"} name="probPolicePullOverProb"
+                probPolicePullOverProb: <Input type={"text"} name="probPolicePullOverProb"
                                                inputRef={register} step="any"/> {/* register an input */}
                 <br/>
                 speedBasedPullOver:
@@ -172,16 +173,13 @@ function SimulationForm(props) {
                     setValue={setValue}
                 />
                 <br/>
-                distractionRate: <Input type={"number"} name="distractionRate"
+                distractionRate: <Input type={"text"} name="distractionRate"
                                         inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                parkingTimeRate: <Input type={"number"} name="parkingTimeRate"
+                parkingTimeRate: <Input type={"text"} name="parkingTimeRate"
                                         inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                parkingProbCutoff: <Input type={"number"} name="parkingProbCutoff"
-                                          inputRef={register} step="any"/> {/* register an input */}
-                <br/>
-                crossWalkCutoff: <Input type={"number"} name="crossWalkCutoff"
+                crossWalkCutoff: <Input type={"text"} name="crossWalkCutoff"
                                         inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
@@ -195,14 +193,14 @@ function SimulationForm(props) {
                 />
                 <br/>
 
-                pedestrianDeathAccidentProb: <Input type={"number"} name="pedestrianDeathAccidentProb"
+                pedestrianDeathAccidentProb: <Input type={"text"} name="pedestrianDeathAccidentProb"
                                                     inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
-                probEnteringIntersection: <Input type={"number"} name="probEnteringIntersection"
+                probEnteringIntersection: <Input type={"text"} name="probEnteringIntersection"
                                                  inputRef={register} step="any"/> {/* register an input */}
                 <br/>
-                intersectionAccidentRate: <Input type={"number"} name="intersectionAccidentRate"
+                intersectionAccidentProb: <Input type={"text"} name="intersectionAccidentProb"
                                                  inputRef={register} step="any"/> {/* register an input */}
                 <br/>
                 accidentScaling:
@@ -214,7 +212,7 @@ function SimulationForm(props) {
                     setValue={setValue}
                 />
                 <br/>
-                slowDownSpeed: <Input type={"number"} name="slowDownSpeed"
+                slowDownSpeed: <Input type={"text"} name="slowDownSpeed"
                                       inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
@@ -292,6 +290,7 @@ class SimulationHandler extends Component {
     updateSimulationState = (data) => {
         console.log("update simulation event");
         this.setState({simulating: true, simulationData: data.locations});
+        console.log(data.locations)
     };
 
     completedSimulation = () => {
@@ -300,29 +299,26 @@ class SimulationHandler extends Component {
     };
 
     cancelSimulation = () => {
-        this.setState({simulating: false})
+        this.setState({simulating: false});
         this.socket.emit('cancelSimulation', 'cancel simulation');
-    }
+    };
 
     startSimulation = (event) => {
         console.log('Starting SimulationHandler with params');
+        event["id"] = this.state.clientId;
         this.socket.emit('startSimulation', {
             "event": "startSimulation",
-            "data": {
-                "id": this.state.clientId,
-                "sizeOfLane": event.sizeOfLane,
-                "numHorizontalLanes": event.numHorizontalLanes,
-                "numVerticalLanes": event.numVerticalLanes
-            }
+            "data": event
         });
-
     };
 
 
     render() {
         return (
             <div className="App">
-                <Simulation simulating={this.state.simulating} data={this.state.simulationData}/>
+                {this.state.simulating &&
+                <Simulation simulating={this.state.simulating} data={this.state.simulationData}/>}
+                <div>Running Simulation: {this.state.simulating.toString()}</div>
                 <div>Please Input Parameters for the simulation</div>
                 <SimulationForm onSubmit={this.startSimulation} simulating={this.state.simulating}
                                 cancelSimulation={this.cancelSimulation}/>

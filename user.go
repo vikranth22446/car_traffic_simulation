@@ -84,13 +84,14 @@ func (user *User) identify() (error) {
 	return nil
 }
 
-func (user *User) runSimulation(config GeneralLaneSimulationConfig) {
+func (user *User) runSimulation(config *GeneralLaneSimulationConfig) {
 	if user.runningSimulation {
 		return
 	}
 	user.runningSimulation = true
 
 	simulation, err := initMultiLaneSimulation(config)
+	simulation.runningSimulation = true
 	if err != nil {
 		// TODO handle this
 	}
@@ -102,6 +103,7 @@ func (user *User) runSimulation(config GeneralLaneSimulationConfig) {
 		if !simulation.runningSimulation {
 			fmt.Println("General Lane Simulation completed")
 			if user.runningSimulation {
+				user.sendUpdatedSimulation()
 				user.sendCompletedSimulation() // only send completed if already running
 				user.runningSimulation = false
 			}
@@ -109,8 +111,8 @@ func (user *User) runSimulation(config GeneralLaneSimulationConfig) {
 		}
 		select {
 		case <-simulation.drawUpdateChan:
+			//fmt.Println(user.simulation)
 			user.sendUpdatedSimulation()
-			fmt.Println(user.simulation)
 			break
 		}
 	}
@@ -153,6 +155,9 @@ func (user *User) sendCompletedSimulation() (error) {
 }
 
 func (user *User) sendUpdatedSimulation() (error) {
+	if !user.simulation.runningSimulation {
+		return nil
+	}
 	jsonRes := user.simulation.getJsonRepresentation()
 	message := Message{Event: simulationUpdate, Data: jsonRes}
 	marshalledMessage, err := json.Marshal(message)

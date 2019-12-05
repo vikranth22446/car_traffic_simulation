@@ -8,22 +8,46 @@ class SimulationCar extends Component {
             value = this.props.car[key];
             items.push({"name": key})
         }
-        if (items.length !== 0) {
-            return (
-                <td>
-                    <div>
-
-                        {items.map(item => <div>🚗{item.name}</div>)}
-                    </div>
-                </td>
-            );
-        }
 
         if (this.props.locationState === 0) {
             return <td className={"empty"}>
                 <div></div>
             </td>
         }
+
+        if (this.props.locationState === 3) {
+            // if(items.length === 0) {
+            //     return <td className={"parking"}><div></div></td>
+            // }
+            return <td className={"parking"}>
+                <td>
+                    <div>
+                        {items.map(item => <div>🚗{item.name}</div>)}
+                    </div>
+                </td>
+            </td>
+        }
+
+        if (this.props.locationState === 4) {
+            return <td>
+                        <div>
+                            🔥
+                            🔥
+                            {items.map(item => <div>🔥🚗{item.name}🔥</div>)}
+                            🔥
+                            🔥
+                        </div>
+            </td>
+        }
+        return (
+            <td>
+                <div>
+
+                    {items.map(item => <div>🚗{item.name}</div>)}
+                </div>
+            </td>
+        );
+
 
         return <td>
             <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>

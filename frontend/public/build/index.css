@@ -67,7 +67,9 @@ table, th, td {
 .empty {
     background-color: white;
 }
-
+.parking {
+    background-color: lightgreen;
+}
 .dataform {
     text-align: left;
     align-items: flex-start;

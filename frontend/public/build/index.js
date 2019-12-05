@@ -34149,8 +34149,9 @@ function (_Component) {
         });
       }
 
-      if (items.length !== 0) {
+      if (this.props.locationState === 0) {
         return _react.default.createElement("td", {
+          className: "empty",
           __source: {
             fileName: _jsxFileName,
             lineNumber: 13
@@ -34162,20 +34163,21 @@ function (_Component) {
             lineNumber: 14
           },
           __self: this
-        }, items.map(function (item) {
-          return _react.default.createElement("div", {
-            __source: {
-              fileName: _jsxFileName,
-              lineNumber: 16
-            },
-            __self: this
-          }, "\uD83D\uDE97", item.name);
-        })));
+        }));
       }
 
-      if (this.props.locationState === 0) {
+      if (this.props.locationState === 3) {
+        // if(items.length === 0) {
+        //     return <td className={"parking"}><div></div></td>
+        // }
         return _react.default.createElement("td", {
-          className: "empty",
+          className: "parking",
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 22
+          },
+          __self: this
+        }, _react.default.createElement("td", {
           __source: {
             fileName: _jsxFileName,
             lineNumber: 23
@@ -34187,19 +34189,72 @@ function (_Component) {
             lineNumber: 24
           },
           __self: this
-        }));
+        }, items.map(function (item) {
+          return _react.default.createElement("div", {
+            __source: {
+              fileName: _jsxFileName,
+              lineNumber: 25
+            },
+            __self: this
+          }, "\uD83D\uDE97", item.name);
+        }))));
+      }
+
+      if (this.props.locationState === 4) {
+        return _react.default.createElement("td", {
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 32
+          },
+          __self: this
+        }, _react.default.createElement("div", {
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 33
+          },
+          __self: this
+        }, "\uD83D\uDD25 \uD83D\uDD25", items.map(function (item) {
+          return _react.default.createElement("div", {
+            __source: {
+              fileName: _jsxFileName,
+              lineNumber: 36
+            },
+            __self: this
+          }, "\uD83D\uDD25\uD83D\uDE97", item.name, "\uD83D\uDD25");
+        }), "\uD83D\uDD25 \uD83D\uDD25"));
       }
 
       return _react.default.createElement("td", {
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 28
+          lineNumber: 43
         },
         __self: this
       }, _react.default.createElement("div", {
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 29
+          lineNumber: 44
+        },
+        __self: this
+      }, items.map(function (item) {
+        return _react.default.createElement("div", {
+          __source: {
+            fileName: _jsxFileName,
+            lineNumber: 46
+          },
+          __self: this
+        }, "\uD83D\uDE97", item.name);
+      })));
+      return _react.default.createElement("td", {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 52
+        },
+        __self: this
+      }, _react.default.createElement("div", {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 53
         },
         __self: this
       }, "\xA0\xA0\xA0\xA0"));
@@ -34225,14 +34280,14 @@ function (_Component2) {
         className: "tableBorder",
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 36
+          lineNumber: 60
         },
         __self: this
       }, this.props.data.map(function (row) {
         return _react.default.createElement("tr", {
           __source: {
             fileName: _jsxFileName,
-            lineNumber: 38
+            lineNumber: 62
           },
           __self: this
         }, row.map(function (item) {
@@ -34241,7 +34296,7 @@ function (_Component2) {
             car: item.cars,
             __source: {
               fileName: _jsxFileName,
-              lineNumber: 40
+              lineNumber: 64
             },
             __self: this
           });
@@ -83430,13 +83485,21 @@ function CarDistributionType(props) {
     __self: this
   }, " ", props.name, ": ", _react.default.createElement(_reactHookFormInput.RHFInput, {
     as: _react.default.createElement(_core.Select, {
-      options: options,
       __source: {
         fileName: _jsxFileName,
         lineNumber: 35
       },
       __self: this
-    }),
+    }, options.map(function (option) {
+      return _react.default.createElement(_core.MenuItem, {
+        value: option.value,
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 36
+        },
+        __self: this
+      }, option.label);
+    })),
     rules: {
       required: true
     },
@@ -83467,8 +83530,8 @@ function SimulationForm(props) {
       'inLaneChoice': 0,
       'outLaneChoice': 0,
       'laneSwitchChoice': 0,
-      'carRemovalRate': 0,
-      'carRestartRate': 1,
+      'carRemovalRate': 1,
+      'carRestartProb': 0.25,
       'carClock': 1,
       'carSpeedUniformEndRange': 0,
       'CarDistributionType': 0,
@@ -83478,12 +83541,11 @@ function SimulationForm(props) {
       'parkingEnabled': false,
       'distractionRate': 0,
       'parkingTimeRate': 1,
-      'parkingProbCutoff': 0,
       'crossWalkCutoff': 2,
       'crossWalkEnabled': false,
       'pedestrianDeathAccidentProb': 0.5,
       'probEnteringIntersection': 1,
-      'intersectionAccidentRate': 0.5,
+      'intersectionAccidentProb': 0.5,
       'accidentScaling': true,
       'slowDownSpeed': 1
     }
@@ -83496,22 +83558,15 @@ function SimulationForm(props) {
   return _react.default.createElement("div", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 82
-    },
-    __self: this
-  }, props.simulating && _react.default.createElement("button", {
-    onClick: props.cancelSimulation,
-    __source: {
-      fileName: _jsxFileName,
       lineNumber: 83
     },
     __self: this
-  }, "Stop Simulation"), _react.default.createElement("form", {
+  }, _react.default.createElement("form", {
     onSubmit: handleSubmit(props.onSubmit),
     className: "dataform",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 84
+      lineNumber: 85
     },
     __self: this
   }, _react.default.createElement("input", {
@@ -83520,138 +83575,138 @@ function SimulationForm(props) {
     value: "Submit",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 85
+      lineNumber: 86
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 86
-    },
-    __self: this
-  }), "Size Of Lane: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "sizeOfLane",
-    inputRef: register,
-    __source: {
-      fileName: _jsxFileName,
       lineNumber: 87
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
+  }), "Size Of Lane: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "sizeOfLane",
+    inputRef: register,
     __source: {
       fileName: _jsxFileName,
       lineNumber: 88
     },
     __self: this
-  }), "Number of Horizontal Lanes: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "numHorizontalLanes",
-    inputRef: register,
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 89
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
+  }), "Number of Horizontal Lanes: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "numHorizontalLanes",
+    inputRef: register,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 91
+      lineNumber: 90
     },
     __self: this
-  }), "Number of Vertical Lanes: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "numVerticalLanes",
-    inputRef: register,
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 92
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
+  }), "Number of Vertical Lanes: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "numVerticalLanes",
+    inputRef: register,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 94
+      lineNumber: 93
     },
     __self: this
-  }), "inAlpha: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "inAlpha",
-    inputRef: register,
-    step: "any",
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 95
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 97
-    },
-    __self: this
-  }), "outBeta: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "outBeta",
+  }), "inAlpha: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "inAlpha",
     inputRef: register,
     step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 96
+    },
+    __self: this
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 98
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 100
-    },
-    __self: this
-  }), "carMovementP: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "carMovementP",
+  }), "outBeta: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "outBeta",
     inputRef: register,
     step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 99
+    },
+    __self: this
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 101
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 103
-    },
-    __self: this
-  }), "numHorizontalCars: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "numHorizontalCars",
+  }), "carMovementP: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "carMovementP",
     inputRef: register,
     step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 102
+    },
+    __self: this
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 104
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 106
-    },
-    __self: this
-  }), "numVerticalCars: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "numVerticalCars",
+  }), "numHorizontalCars: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "numHorizontalCars",
     inputRef: register,
     step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 105
+    },
+    __self: this
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 107
     },
     __self: this
+  }), "numVerticalCars: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "numVerticalCars",
+    inputRef: register,
+    step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 108
+    },
+    __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 109
+      lineNumber: 110
     },
     __self: this
   }), _react.default.createElement(LaneChoice, {
@@ -83660,13 +83715,13 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 110
+      lineNumber: 111
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 111
+      lineNumber: 112
     },
     __self: this
   }), _react.default.createElement(LaneChoice, {
@@ -83675,123 +83730,124 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 112
+      lineNumber: 113
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 113
+      lineNumber: 114
     },
     __self: this
   }), "probSwitchingLanes: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "probSwitchingLanes",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 115
+      lineNumber: 116
     },
     __self: this
   }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 117
-    },
-    __self: this
-  }), _react.default.createElement(LaneChoice, {
-    name: "laneSwitchChoice",
-    register: register,
     __source: {
       fileName: _jsxFileName,
       lineNumber: 118
     },
     __self: this
-  }), _react.default.createElement("br", {
+  }), _react.default.createElement(LaneChoice, {
+    name: "laneSwitchChoice",
+    register: register,
+    setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 120
+      lineNumber: 119
     },
     __self: this
-  }), "accidentProb: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "accidentProb",
-    inputRef: register,
-    step: "any",
+  }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 121
     },
     __self: this
+  }), "accidentProb: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "accidentProb",
+    inputRef: register,
+    step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 122
+    },
+    __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 123
+      lineNumber: 124
     },
     __self: this
   }), "carRemovalRate: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "carRemovalRate",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 125
+      lineNumber: 126
     },
     __self: this
   }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 127
-    },
-    __self: this
-  }), "carRestartRate: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "carRestartRate",
-    inputRef: register,
-    step: "any",
     __source: {
       fileName: _jsxFileName,
       lineNumber: 128
     },
     __self: this
+  }), "carRestartProb: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "carRestartProb",
+    inputRef: register,
+    step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 129
+    },
+    __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 130
+      lineNumber: 131
     },
     __self: this
   }), "carClock: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "carClock",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 132
+      lineNumber: 133
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 134
+      lineNumber: 135
     },
     __self: this
   }), "carSpeedUniformEndRange: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "carSpeedUniformEndRange",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 136
+      lineNumber: 137
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 138
+      lineNumber: 139
     },
     __self: this
   }), _react.default.createElement(CarDistributionType, {
@@ -83800,20 +83856,20 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 140
+      lineNumber: 141
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 141
+      lineNumber: 142
     },
     __self: this
   }), "reSampleSpeedEveryClk:", _react.default.createElement(_reactHookFormInput.RHFInput, {
     as: _react.default.createElement(_core.Checkbox, {
       __source: {
         fileName: _jsxFileName,
-        lineNumber: 145
+        lineNumber: 146
       },
       __self: this
     }),
@@ -83823,36 +83879,36 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 144
+      lineNumber: 145
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 151
+      lineNumber: 152
     },
     __self: this
   }), "probPolicePullOverProb: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "probPolicePullOverProb",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 153
+      lineNumber: 154
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 155
+      lineNumber: 156
     },
     __self: this
   }), "speedBasedPullOver:", _react.default.createElement(_reactHookFormInput.RHFInput, {
     as: _react.default.createElement(_core.Checkbox, {
       __source: {
         fileName: _jsxFileName,
-        lineNumber: 158
+        lineNumber: 159
       },
       __self: this
     }),
@@ -83862,20 +83918,20 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 157
+      lineNumber: 158
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 164
+      lineNumber: 165
     },
     __self: this
   }), "parkingEnabled:", _react.default.createElement(_reactHookFormInput.RHFInput, {
     as: _react.default.createElement(_core.Checkbox, {
       __source: {
         fileName: _jsxFileName,
-        lineNumber: 168
+        lineNumber: 169
       },
       __self: this
     }),
@@ -83885,84 +83941,68 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 167
+      lineNumber: 168
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 174
+      lineNumber: 175
     },
     __self: this
   }), "distractionRate: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "distractionRate",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 175
+      lineNumber: 176
     },
     __self: this
   }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 177
-    },
-    __self: this
-  }), "parkingTimeRate: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "parkingTimeRate",
-    inputRef: register,
-    step: "any",
     __source: {
       fileName: _jsxFileName,
       lineNumber: 178
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 180
-    },
-    __self: this
-  }), "parkingProbCutoff: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "parkingProbCutoff",
+  }), "parkingTimeRate: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "parkingTimeRate",
     inputRef: register,
     step: "any",
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 179
+    },
+    __self: this
+  }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 181
     },
     __self: this
-  }), " ", _react.default.createElement("br", {
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 183
-    },
-    __self: this
   }), "crossWalkCutoff: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "crossWalkCutoff",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 184
+      lineNumber: 182
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 186
+      lineNumber: 184
     },
     __self: this
   }), "crossWalkEnabled:", _react.default.createElement(_reactHookFormInput.RHFInput, {
     as: _react.default.createElement(_core.Checkbox, {
       __source: {
         fileName: _jsxFileName,
-        lineNumber: 190
+        lineNumber: 188
       },
       __self: this
     }),
@@ -83972,68 +84012,68 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 189
+      lineNumber: 187
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 196
+      lineNumber: 194
     },
     __self: this
   }), "pedestrianDeathAccidentProb: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "pedestrianDeathAccidentProb",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 198
+      lineNumber: 196
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 200
+      lineNumber: 198
     },
     __self: this
   }), "probEnteringIntersection: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "probEnteringIntersection",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 202
+      lineNumber: 200
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 204
+      lineNumber: 202
     },
     __self: this
-  }), "intersectionAccidentRate: ", _react.default.createElement(_Input.default, {
-    type: "number",
-    name: "intersectionAccidentRate",
+  }), "intersectionAccidentProb: ", _react.default.createElement(_Input.default, {
+    type: "text",
+    name: "intersectionAccidentProb",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 205
+      lineNumber: 203
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 207
+      lineNumber: 205
     },
     __self: this
   }), "accidentScaling:", _react.default.createElement(_reactHookFormInput.RHFInput, {
     as: _react.default.createElement(_core.Checkbox, {
       __source: {
         fileName: _jsxFileName,
-        lineNumber: 210
+        lineNumber: 208
       },
       __self: this
     }),
@@ -84043,29 +84083,29 @@ function SimulationForm(props) {
     setValue: setValue,
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 209
+      lineNumber: 207
     },
     __self: this
   }), _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 216
+      lineNumber: 214
     },
     __self: this
   }), "slowDownSpeed: ", _react.default.createElement(_Input.default, {
-    type: "number",
+    type: "text",
     name: "slowDownSpeed",
     inputRef: register,
     step: "any",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 217
+      lineNumber: 215
     },
     __self: this
   }), " ", _react.default.createElement("br", {
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 219
+      lineNumber: 217
     },
     __self: this
   }), _react.default.createElement("input", {
@@ -84074,7 +84114,7 @@ function SimulationForm(props) {
     value: "Submit",
     __source: {
       fileName: _jsxFileName,
-      lineNumber: 221
+      lineNumber: 219
     },
     __self: this
   })));
@@ -84124,6 +84164,8 @@ function (_Component) {
         simulating: true,
         simulationData: data.locations
       });
+
+      console.log(data.locations);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "completedSimulation", function () {
       console.log("Simulation completed event");
@@ -84141,15 +84183,11 @@ function (_Component) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startSimulation", function (event) {
       console.log('Starting SimulationHandler with params');
+      event["id"] = _this.state.clientId;
 
       _this.socket.emit('startSimulation', {
         "event": "startSimulation",
-        "data": {
-          "id": _this.state.clientId,
-          "sizeOfLane": event.sizeOfLane,
-          "numHorizontalLanes": event.numHorizontalLanes,
-          "numVerticalLanes": event.numVerticalLanes
-        }
+        "data": event
       });
     });
     _this.state = {
@@ -84192,21 +84230,27 @@ function (_Component) {
         className: "App",
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 324
+          lineNumber: 318
         },
         __self: this
-      }, _react.default.createElement(_Simulation.default, {
+      }, this.state.simulating && _react.default.createElement(_Simulation.default, {
         simulating: this.state.simulating,
         data: this.state.simulationData,
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 325
+          lineNumber: 320
         },
         __self: this
       }), _react.default.createElement("div", {
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 326
+          lineNumber: 321
+        },
+        __self: this
+      }, "Running Simulation: ", this.state.simulating.toString()), _react.default.createElement("div", {
+        __source: {
+          fileName: _jsxFileName,
+          lineNumber: 322
         },
         __self: this
       }, "Please Input Parameters for the simulation"), _react.default.createElement(SimulationForm, {
@@ -84215,7 +84259,7 @@ function (_Component) {
         cancelSimulation: this.cancelSimulation,
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 327
+          lineNumber: 323
         },
         __self: this
       }));
@@ -84335,7 +84379,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55198" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63894" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

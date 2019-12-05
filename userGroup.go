@@ -81,6 +81,7 @@ func cancelSimulation(conn *websocket.Conn, data interface{}) {
 	}
 	user.simulation.cancelSimulation <- true
 	user.runningSimulation = false
+	user.simulation.runningSimulation = false
 }
 
 func startSimulationEvent(conn *websocket.Conn, data interface{}) {
@@ -173,28 +174,28 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.numVerticalCars = numVerticalCars
 	}
 
-	if inLaneChoice, ok := m["inLaneChoice"].(string); ok {
-		inLaneChoice, err := strconv.Atoi(inLaneChoice)
-		if err != nil {
-			return
-		}
-		config.inLaneChoice = convertIntLaneChoice(inLaneChoice)
+	if inLaneChoice, ok := m["inLaneChoice"].(float64); ok {
+		//inLaneChoice, err := strconv.Atoi(inLaneChoice)
+		//if err != nil {
+		//	return
+		//}
+		config.inLaneChoice = convertIntLaneChoice(int(inLaneChoice))
 	}
 
-	if outLaneChoice, ok := m["outLaneChoice"].(string); ok {
-		outLaneChoice, err := strconv.Atoi(outLaneChoice)
-		if err != nil {
-			return
-		}
-		config.outLaneChoice = convertIntLaneChoice(outLaneChoice)
+	if outLaneChoice, ok := m["outLaneChoice"].(float64); ok {
+		//outLaneChoice, err := strconv.Atoi(outLaneChoice)
+		//if err != nil {
+		//	return
+		//}
+		config.outLaneChoice = convertIntLaneChoice(int(outLaneChoice))
 	}
 
-	if laneSwitchChoice, ok := m["laneSwitchChoice"].(string); ok {
-		laneSwitchChoice, err := strconv.Atoi(laneSwitchChoice)
-		if err != nil {
-			return
-		}
-		config.outLaneChoice = convertIntLaneChoice(laneSwitchChoice)
+	if laneSwitchChoice, ok := m["laneSwitchChoice"].(float64); ok {
+		//laneSwitchChoice, err := strconv.Atoi(laneSwitchChoice)
+		//if err != nil {
+		//	return
+		//}
+		config.laneSwitchChoice = convertIntLaneChoice(int(laneSwitchChoice))
 	}
 
 	if carRemovalRate, ok := m["carRemovalRate"].(string); ok {
@@ -205,12 +206,12 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.carRemovalRate = carRemovalRate
 	}
 
-	if carRestartRate, ok := m["carRestartRate"].(string); ok {
+	if carRestartRate, ok := m["carRestartProb"].(string); ok {
 		carRestartRate, err := strconv.ParseFloat(carRestartRate, 64)
 		if err != nil {
 			return
 		}
-		config.carRestartRate = carRestartRate
+		config.carRestartProb = carRestartRate
 	}
 
 	if carClock, ok := m["carClock"].(string); ok {
@@ -229,20 +230,17 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.carSpeedUniformEndRange = carSpeedUniformEndRange
 	}
 
-	if CarDistributionType, ok := m["CarDistributionType"].(string); ok {
-		CarDistributionType, err := strconv.Atoi(CarDistributionType)
-		if err != nil {
-			return
-		}
-		config.CarDistributionType = convertToCarDistributionType(CarDistributionType)
+	if CarDistributionType, ok := m["CarDistributionType"].(float64); ok {
+		//CarDistributionType, err := strconv.Atoi(CarDistributionType)
+		//if err != nil {
+		//	return
+		//}
+		config.CarDistributionType = convertToCarDistributionType(int(CarDistributionType))
 	}
 
-	if reSampleSpeedEveryClk, ok := m["reSampleSpeedEveryClk"].(string); ok {
-		reSampleSpeedEveryClk, err := strconv.ParseBool(reSampleSpeedEveryClk)
-		if err != nil {
-			return
-		}
+	if reSampleSpeedEveryClk, ok := m["reSampleSpeedEveryClk"].(bool); ok {
 		config.reSampleSpeedEveryClk = reSampleSpeedEveryClk
+
 	}
 
 	if probPolicePullOverProb, ok := m["probPolicePullOverProb"].(string); ok {
@@ -253,19 +251,11 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.probPolicePullOverProb = probPolicePullOverProb
 	}
 
-	if speedBasedPullOver, ok := m["speedBasedPullOver"].(string); ok {
-		speedBasedPullOver, err := strconv.ParseBool(speedBasedPullOver)
-		if err != nil {
-			return
-		}
+	if speedBasedPullOver, ok := m["speedBasedPullOver"].(bool); ok {
 		config.speedBasedPullOver = speedBasedPullOver
 	}
 
-	if parkingEnabled, ok := m["parkingEnabled"].(string); ok {
-		parkingEnabled, err := strconv.ParseBool(parkingEnabled)
-		if err != nil {
-			return
-		}
+	if parkingEnabled, ok := m["parkingEnabled"].(bool); ok {
 		config.parkingEnabled = parkingEnabled
 	}
 
@@ -285,14 +275,6 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.parkingTimeRate = parkingTimeRate
 	}
 
-	if parkingProbCutoff, ok := m["parkingProbCutoff"].(string); ok {
-		parkingProbCutoff, err := strconv.ParseFloat(parkingProbCutoff, 64)
-		if err != nil {
-			return
-		}
-		config.parkingProbCutoff = parkingProbCutoff
-	}
-
 	if crossWalkCutoff, ok := m["crossWalkCutoff"].(string); ok {
 		crossWalkCutoff, err := strconv.Atoi(crossWalkCutoff)
 		if err != nil {
@@ -301,11 +283,7 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.crossWalkCutoff = crossWalkCutoff
 	}
 
-	if crossWalkEnabled, ok := m["crossWalkEnabled"].(string); ok {
-		crossWalkEnabled, err := strconv.ParseBool(crossWalkEnabled)
-		if err != nil {
-			return
-		}
+	if crossWalkEnabled, ok := m["crossWalkEnabled"].(bool); ok {
 		config.crossWalkEnabled = crossWalkEnabled
 	}
 
@@ -325,19 +303,15 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.probEnteringIntersection = probEnteringIntersection
 	}
 
-	if intersectionAccidentRate, ok := m["intersectionAccidentRate"].(string); ok {
-		intersectionAccidentRate, err := strconv.ParseFloat(intersectionAccidentRate, 64)
+	if intersectionAccidentProb, ok := m["intersectionAccidentProb"].(string); ok {
+		intersectionAccidentProb, err := strconv.ParseFloat(intersectionAccidentProb, 64)
 		if err != nil {
 			return
 		}
-		config.intersectionAccidentRate = intersectionAccidentRate
+		config.intersectionAccidentProb = intersectionAccidentProb
 	}
 
-	if accidentScaling, ok := m["accidentScaling"].(string); ok {
-		accidentScaling, err := strconv.ParseBool(accidentScaling)
-		if err != nil {
-			return
-		}
+	if accidentScaling, ok := m["accidentScaling"].(bool); ok {
 		config.accidentScaling = accidentScaling
 	}
 
