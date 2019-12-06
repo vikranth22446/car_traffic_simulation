@@ -28,6 +28,7 @@ type User struct {
 	ID                uuid.UUID
 	runningSimulation bool
 	simulation        *GeneralLaneSimulation
+
 }
 
 // Message is the struct to communicate to the client
@@ -91,7 +92,7 @@ func (user *User) runSimulation(config *GeneralLaneSimulationConfig) {
 	user.runningSimulation = true
 
 	simulation, err := initMultiLaneSimulation(config)
-	simulation.runningSimulation = true
+	simulation.setRunningSimulation(true)
 	if err != nil {
 		// TODO handle this
 	}
@@ -100,13 +101,10 @@ func (user *User) runSimulation(config *GeneralLaneSimulationConfig) {
 
 	go RunGeneralSimulation(simulation)
 	for {
-		if !simulation.runningSimulation {
+		if !simulation.isRunningSimulation() || !user.runningSimulation {
 			fmt.Println("General Lane Simulation completed")
-			if user.runningSimulation {
-				user.sendUpdatedSimulation()
-				user.sendCompletedSimulation() // only send completed if already running
-				user.runningSimulation = false
-			}
+			user.sendCompletedSimulation() // only send completed if already running
+			user.simulation.setRunningSimulation(false)
 			return
 		}
 		select {
@@ -155,7 +153,7 @@ func (user *User) sendCompletedSimulation() (error) {
 }
 
 func (user *User) sendUpdatedSimulation() (error) {
-	if !user.simulation.runningSimulation {
+	if !user.simulation.isRunningSimulation() {
 		return nil
 	}
 	jsonRes := user.simulation.getJsonRepresentation()
@@ -192,7 +190,7 @@ func (user *User) reader() {
 		// assign message to a function handler
 		if handler, found := user.group.FindHandler(msg.Event); found {
 			// send msg.ID
-			handler(user.ws, msg.Data)
+			go handler(user.ws, msg.Data)
 		}
 	}
 

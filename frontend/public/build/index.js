@@ -83561,7 +83561,14 @@ function SimulationForm(props) {
       lineNumber: 83
     },
     __self: this
-  }, _react.default.createElement("form", {
+  }, props.simulating && _react.default.createElement("button", {
+    onClick: props.cancelSimulation,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 84
+    },
+    __self: this
+  }, "Stop Simulation"), _react.default.createElement("form", {
     onSubmit: handleSubmit(props.onSubmit),
     className: "dataform",
     __source: {
@@ -84379,7 +84386,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63894" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58399" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

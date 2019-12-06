@@ -50,7 +50,10 @@ code {
 table, th, td {
     border: 1px solid black;
 }
-
+th, td {
+    height: 30px;
+    width: 30px
+}
 .empty {
     background-color: white;
 }

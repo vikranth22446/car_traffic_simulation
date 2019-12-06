@@ -81,7 +81,7 @@ func cancelSimulation(conn *websocket.Conn, data interface{}) {
 	}
 	user.simulation.cancelSimulation <- true
 	user.runningSimulation = false
-	user.simulation.runningSimulation = false
+	user.simulation.setRunningSimulation(false)
 }
 
 func startSimulationEvent(conn *websocket.Conn, data interface{}) {
