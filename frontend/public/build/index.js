@@ -83561,14 +83561,7 @@ function SimulationForm(props) {
       lineNumber: 83
     },
     __self: this
-  }, props.simulating && _react.default.createElement("button", {
-    onClick: props.cancelSimulation,
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 84
-    },
-    __self: this
-  }, "Stop Simulation"), _react.default.createElement("form", {
+  }, _react.default.createElement("form", {
     onSubmit: handleSubmit(props.onSubmit),
     className: "dataform",
     __source: {
@@ -84113,15 +84106,6 @@ function SimulationForm(props) {
     __source: {
       fileName: _jsxFileName,
       lineNumber: 217
-    },
-    __self: this
-  }), _react.default.createElement("input", {
-    type: "submit",
-    disabled: props.simulating,
-    value: "Submit",
-    __source: {
-      fileName: _jsxFileName,
-      lineNumber: 219
     },
     __self: this
   })));

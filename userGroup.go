@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type UserGroup struct {
 	users       map[*User]bool
 	ids         map[uuid.UUID]*User
 	rules       map[string]Handler
+	groupLock   sync.Mutex
 }
 
 func newUserGroup() *UserGroup {
@@ -23,6 +25,7 @@ func newUserGroup() *UserGroup {
 	self.users = map[*User]bool{}
 	self.rules = map[string]Handler{}
 	self.connUserMap = map[*websocket.Conn]*User{}
+	self.groupLock = sync.Mutex{}
 	return self
 }
 
@@ -38,6 +41,9 @@ func (userGroup *UserGroup) AddEventHandler(event string, handler Handler) {
 }
 
 func (userGroup *UserGroup) removePlayer(p *User) {
+	userGroup.groupLock.Lock()
+	defer userGroup.groupLock.Unlock()
+
 	delete(userGroup.users, p)
 	delete(userGroup.ids, p.ID)
 	delete(userGroup.connUserMap, p.ws)
@@ -59,6 +65,9 @@ func init() {
 }
 
 func (userGroup *UserGroup) addUser(p *User) {
+	userGroup.groupLock.Lock()
+	defer userGroup.groupLock.Unlock()
+
 	p.group = userGroup
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
@@ -76,16 +85,14 @@ func cancelSimulation(conn *websocket.Conn, data interface{}) {
 	if !exists {
 		return
 	}
-	if !user.runningSimulation {
+	if !user.isRunningSimulation() {
 		return
 	}
 	user.simulation.cancelSimulation <- true
-	user.runningSimulation = false
-	user.simulation.setRunningSimulation(false)
 }
 
 func startSimulationEvent(conn *websocket.Conn, data interface{}) {
-	fmt.Println("start Simulation event handler")
+	fmt.Println("parsing simulation config")
 
 	user, exists := userGroup.connUserMap[conn]
 	if !exists {

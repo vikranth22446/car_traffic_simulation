@@ -382,6 +382,7 @@ type GeneralLaneSimulation struct {
 	parkingReturn chan *Parking
 
 	runningSimulationLock sync.Mutex
+	numAccidents          int
 }
 
 func (sim *GeneralLaneSimulation) isRunningSimulation() bool {
@@ -421,7 +422,6 @@ func (sim *GeneralLaneSimulation) getJsonRepresentation() JsonGeneralLaneSimulat
 				jsonGen.Locations[i][j].Cars[k] = SmartCar{ID: v.ID}
 			}
 			loc.locationLock.Unlock()
-
 
 		}
 	}
@@ -719,6 +719,10 @@ func (sim *GeneralLaneSimulation) RandomlyPickLocation(lanes []*StatefulLocation
 	return sim.selectBasedOnTraffic(lanes, direction)
 }
 
+func (singleSim *GeneralLaneSimulation) close() {
+	singleSim.setRunningSimulation(false)
+}
+
 // RunSingleLaneSimulation runs the simulation such that all the cars from bin 0 move to the last bin
 func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 	defer simulation.close()
@@ -825,7 +829,9 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			direction := car.Direction
 			car.smartCarLock.Unlock()
 
-			if x == -1 || y == -1 {
+			if x == -1 || y == -1 ||
+				!isInBounds(x, simulation.config.sizeOfLane) ||
+				!isInBounds(y, simulation.config.sizeOfLane) {
 				break
 			}
 			currLoc := simulation.Locations[x][y]
@@ -834,7 +840,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			switchLanes := UniformRand() < simulation.config.probSwitchingLanes
 
 			if direction == Horizontal {
-				if y == simulation.config.sizeOfLane {
+				if y+1 == simulation.config.sizeOfLane {
 					break
 				}
 				if !switchLanes {
@@ -894,10 +900,12 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			if !nextLoc.noCars() {
 
 				poisson := distuv.Poisson{Lambda: 1}
-				if nextLoc.getLocationState() == Intersection && simulation.config.intersectionAccidentProb != 0 {
-					poisson = distuv.Poisson{Lambda: simulation.config.intersectionAccidentProb}
-				}
 				accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.accidentProb
+
+				if nextLoc.getLocationState() == Intersection {
+					accidentOccurs = poisson.Prob(poisson.Rand()) < simulation.config.intersectionAccidentProb
+				}
+
 				//fmt.Println("next Car has more than 1", accidentOccurs, poisson.Prob(poisson.Rand()))
 
 				if simulation.config.accidentScaling {
@@ -925,6 +933,9 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			}
 
 			if accidentOccurs {
+				simulation.runningSimulationLock.Lock()
+				simulation.numAccidents += 1
+				simulation.runningSimulationLock.Unlock()
 				prevLocState := nextLoc.getLocationState()
 				nextLoc.setLocationState(AccidentLocationState)
 

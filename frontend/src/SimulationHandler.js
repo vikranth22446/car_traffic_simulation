@@ -81,7 +81,7 @@ function SimulationForm(props) {
 
     return (
         <div>
-            {props.simulating && <button onClick={props.cancelSimulation}>Stop Simulation</button>}
+            {/*{props.simulating && <button onClick={props.cancelSimulation}>Stop Simulation</button>}*/}
             <form onSubmit={handleSubmit(props.onSubmit)} className={"dataform"}>
                 <input type="submit" disabled={props.simulating} value={"Submit"}/>
                 <br/>
@@ -216,7 +216,7 @@ function SimulationForm(props) {
                                       inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
-                <input type="submit" disabled={props.simulating} value={"Submit"}/>
+                {/*<input type="submit" disabled={props.simulating} value={"Submit"}/>*/}
             </form>
 
         </div>

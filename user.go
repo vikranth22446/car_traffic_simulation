@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -24,11 +25,14 @@ type User struct {
 	output chan []byte
 	addr   net.Addr
 
-	group             *UserGroup
-	ID                uuid.UUID
-	runningSimulation bool
-	simulation        *GeneralLaneSimulation
+	group      *UserGroup
+	ID         uuid.UUID
+	simulation *GeneralLaneSimulation
+	userLock   sync.Mutex
+}
 
+func (self *User) isRunningSimulation() bool {
+	return self.simulation != nil && self.simulation.isRunningSimulation()
 }
 
 // Message is the struct to communicate to the client
@@ -43,6 +47,7 @@ type Handler func(*websocket.Conn, interface{})
 func newUser(ws *websocket.Conn) *User {
 	self := &User{}
 	self.ws = ws
+	self.userLock = sync.Mutex{}
 
 	// Bot players do not use a websocket.
 	if self.ws != nil {
@@ -86,11 +91,11 @@ func (user *User) identify() (error) {
 }
 
 func (user *User) runSimulation(config *GeneralLaneSimulationConfig) {
-	if user.runningSimulation {
+	fmt.Println("start run simulation")
+
+	if user.isRunningSimulation() {
 		return
 	}
-	user.runningSimulation = true
-
 	simulation, err := initMultiLaneSimulation(config)
 	simulation.setRunningSimulation(true)
 	if err != nil {
@@ -98,11 +103,21 @@ func (user *User) runSimulation(config *GeneralLaneSimulationConfig) {
 	}
 	user.simulation = simulation
 	user.sendUpdatedSimulation()
+	start := time.Now()
 
 	go RunGeneralSimulation(simulation)
 	for {
-		if !simulation.isRunningSimulation() || !user.runningSimulation {
+		if !simulation.isRunningSimulation() {
 			fmt.Println("General Lane Simulation completed")
+			t := time.Now()
+
+			elapsed := t.Sub(start)
+			fmt.Println("Time Elapsed ", elapsed)
+
+			simulation.runningSimulationLock.Lock()
+			fmt.Println("Num Accidents ", simulation.numAccidents)
+			simulation.runningSimulationLock.Unlock()
+
 			user.sendCompletedSimulation() // only send completed if already running
 			user.simulation.setRunningSimulation(false)
 			return
@@ -185,8 +200,7 @@ func (user *User) reader() {
 		if playerShowLog == true {
 			log.Printf("%s -> %s\n", user.ws.RemoteAddr(), msg.Event)
 		}
-		fmt.Println("message recieved")
-		fmt.Println(msg.Event)
+		fmt.Println("message recieved", msg.Event)
 		// assign message to a function handler
 		if handler, found := user.group.FindHandler(msg.Event); found {
 			// send msg.ID
@@ -196,6 +210,7 @@ func (user *User) reader() {
 
 	user.log("Exiting reader.")
 }
+
 func (user *User) Write(p []byte) (n int, err error) {
 
 	if user.ws == nil {
@@ -259,8 +274,7 @@ func (user *User) close() {
 		user.group.removePlayer(user)
 	}
 
-	if user.runningSimulation {
-		user.runningSimulation = false
+	if user.isRunningSimulation() {
 		user.simulation.cancelSimulation <- true
 		user.simulation = nil
 	}

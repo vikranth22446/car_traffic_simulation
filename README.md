@@ -1,5 +1,6 @@
 # Installation
 Install golang using https://golang.org/doc/install
+Note: Please use linux or mac for optimal installation experience
 
 ## Installing Go Dependencies
 ```

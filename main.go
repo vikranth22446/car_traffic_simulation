@@ -38,6 +38,14 @@ func commands(app *cli.App) {
 				RunTerminalMultiLaneSimulation()
 			},
 		},
+		{
+			Name:    "Run Experiments",
+			Aliases: []string{"e", "experiment"},
+			Usage:   "Run the four experiments we defined in the report",
+			Action: func(c *cli.Context) {
+				RunExperiments()
+			},
+		},
 	}
 }
 
