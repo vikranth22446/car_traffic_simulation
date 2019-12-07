@@ -146,10 +146,12 @@ func runExperiment(config *GeneralLaneSimulationConfig) {
 			simulation.runningSimulationLock.Unlock()
 			return
 		}
+
 		select {
 		case <-simulation.drawUpdateChan:
-			//fmt.Println(user.simulation)
+			fmt.Println(simulation)
 			break
 		}
+		time.Sleep(1000)
 	}
 }

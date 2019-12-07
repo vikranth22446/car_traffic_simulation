@@ -1,5 +1,5 @@
 # Installation
-Install golang using https://golang.org/doc/install
+Install golang using https://golang.org/doc/install Please install the latest version
 Note: Please use linux or mac for optimal installation experience
 
 ## Installing Go Dependencies
@@ -14,7 +14,7 @@ the commands make supports. Type `make` to view this description
 (3) make build: To just build it
 ```
 ## Running the CLI
-After building the code, you can run a cli to start the server or run commands.
+After building the code(make build), you can run a cli to start the server or run commands.
 Running ee126_car_simulation executable gets the following description.
 ```sh
 NAME:
