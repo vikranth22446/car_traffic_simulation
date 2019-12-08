@@ -137,7 +137,7 @@ func getNewCarSpeed(speedType CarDistributionType, carSpeedEndRange float64, car
 		prob = exponential.Prob(speed)
 	} else if speedType == poissonDistribution {
 		var poisson = distuv.Poisson{Lambda: carSpeed}
-		speed = getPoissonRand(carSpeed, unlikelyCutoff, removeUnlikely)
+		speed, _ = getPoissonRand(carSpeed, unlikelyCutoff, removeUnlikely)
 		prob = poisson.Prob(speed)
 	} else if speedType == uniformDistribution {
 		if carSpeedEndRange == 0 {
@@ -903,7 +903,8 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			}
 
 			if simulation.config.parkingEnabled && currLoc.canMoveToParking() { // parking can only happen on regular lane
-				distractionOccurs := getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents) < simulation.config.distractionRate
+				_, prob := getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents)
+				distractionOccurs := prob  < simulation.config.distractionRate
 				if distractionOccurs {
 					var parkingLoc *StatefulLocation
 					if direction == Horizontal {
@@ -930,7 +931,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 
 			var accidentOccurs = false
 			if !nextLoc.noCars() {
-				randPoisson := getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents)
+				_, randPoisson := getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents)
 				accidentOccurs = randPoisson < simulation.config.accidentProb
 
 				if nextLoc.getLocationState() == Intersection {
@@ -946,7 +947,7 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 							break
 						}
 						accidentOccurs = randPoisson < simulation.config.accidentProb
-						randPoisson = getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents)
+						_, randPoisson = getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents)
 					}
 				}
 
@@ -959,7 +960,8 @@ func RunGeneralSimulation(simulation *GeneralLaneSimulation) {
 			}
 
 			if !accidentOccurs && nextLoc.getLocationState() == CrossWalk {
-				accidentOccurs = getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents) < simulation.config.pedestrianDeathAccidentProb
+				_, accidentProb := getPoissonRand(1, simulation.config.unlikelyCutoff, simulation.config.removeUnlikelyEvents)
+				accidentOccurs =  accidentProb < simulation.config.pedestrianDeathAccidentProb
 			}
 
 			if accidentOccurs {

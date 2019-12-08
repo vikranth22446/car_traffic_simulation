@@ -90,12 +90,12 @@ func getExpRand(rate float64, cutoff float64, removeUnlikelyEvents bool) float64
 	return movementTime
 }
 
-func getPoissonRand(lambda float64, cutoff float64, removeUnlikelyEvents bool) float64 {
+func getPoissonRand(lambda float64, cutoff float64, removeUnlikelyEvents bool) (float64, float64) {
 	var poisson = distuv2.Poisson{Lambda: lambda}
 
 	movementTime := poisson.Rand()
 	if !removeUnlikelyEvents {
-		return movementTime
+		return movementTime, poisson.Prob(movementTime)
 	}
 	iterations := 0
 
@@ -103,8 +103,8 @@ func getPoissonRand(lambda float64, cutoff float64, removeUnlikelyEvents bool) f
 		movementTime = poisson.Rand()
 		iterations += 1
 		if iterations > unlikelyIterations {
-			return poisson.Mean()
+			return poisson.Mean(), 0.5
 		}
 	}
-	return movementTime
+	return movementTime, poisson.Prob(movementTime)
 }
