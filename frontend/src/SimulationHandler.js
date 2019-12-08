@@ -287,10 +287,10 @@ class SimulationHandler extends Component {
     //   has mounted.
     componentDidMount() {
         // establish websocket connection to backend server.
-        var environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-        // Had to manually add this because https://github.com/parcel-bundler/parcel/issues/496#issuecomment-366993459
         // let ws = new WebSocket('ws://localhost:5000/ws');
-        let ws = new WebSocket('ws://35.202.208.248:443/ws')
+        // var url = "localhost:5000"
+        var url = window.location.host;
+        let ws = new WebSocket('ws://' + url + '/ws');
         // create and assign a socket to a variable.
         let socket = this.socket = new Socket(ws);
 
