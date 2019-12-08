@@ -80,11 +80,15 @@ func runServer(port int) {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	addRoutes(r)
+	var err error
 	if port == 443 {
 		fmt.Printf("Starting serve at https://localhost:%v\n", port)
-		http.ListenAndServeTLS(fmt.Sprintf(":%v", port), "server.crt", "server.key", r)
+		err = http.ListenAndServeTLS(fmt.Sprintf(":%v", port), "server.crt", "server.key", r)
 	} else {
 		fmt.Printf("Starting serve at http://localhost:%v\n", port)
-		http.ListenAndServe(fmt.Sprintf(":%v", port), r)
+		err = http.ListenAndServe(fmt.Sprintf(":%v", port), r)
 	}
+	if err != nil {
+        	log.Fatal("ListenAndServe: ", err)
+    	}
 }
