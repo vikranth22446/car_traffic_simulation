@@ -12,7 +12,9 @@
 		"react-hook-form-input": "^1.1.1",
 		"react-markdown": "^4.2.2",
 		"react-modal": "^3.10.1",
-		"react-select": "^3.0.8"
+		"react-select": "^3.0.8",
+		"server": "^1.0.21",
+		"uws": "10.148.1"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.4.3",
@@ -60,5 +62,8 @@
 		"plugins": [
 			"@babel/proposal-class-properties"
 		]
+	},
+	"browser": {
+		"fs": false
 	}
 }

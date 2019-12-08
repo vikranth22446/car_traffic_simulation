@@ -65,15 +65,13 @@ var upgrader = &websocket.Upgrader{
 func addRoutes(router *chi.Mux) *chi.Mux {
 	workDir, err := os.Getwd()
 	HandleErr(err)
-	fmt.Println(http.Dir(filepath.Join(workDir, "frontend", "public", "build")))
 	FileServer(router, "/static", http.Dir(filepath.Join(workDir, "frontend", "public")))
 	router.Get("/", index)
 	router.HandleFunc("/ws", wsHandler)
 	return router
 }
 
-func runServer() {
-	flag.IntVar(&port, "p", 80, "Port to listen for HTTP requests (default port 8080).")
+func runServer(port int) {
 	// Parse the args.
 	flag.Parse()
 
@@ -83,6 +81,6 @@ func runServer() {
 	r.Use(middleware.Recoverer)
 	addRoutes(r)
 
-	fmt.Printf("Starting serve at http://localhost:%v\n", 80)
-	http.ListenAndServe(":80", r)
+	fmt.Printf("Starting serve at http://localhost:%v\n", port)
+	http.ListenAndServe(fmt.Sprintf(":%v", port), r)
 }

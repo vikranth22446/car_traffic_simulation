@@ -195,6 +195,7 @@ func (user *User) reader() {
 		// read incoming message from socket
 		if err := user.ws.ReadJSON(&msg); err != nil {
 			log.Printf("socket read error: %v\n", err)
+			user.close()
 			break
 		}
 		if playerShowLog == true {
@@ -261,7 +262,7 @@ func (user *User) writer() {
 		time.Sleep(time.Duration(sleep) * time.Nanosecond)
 	}
 
-	user.close()
+	defer user.close()
 }
 
 func (user *User) close() {
@@ -276,6 +277,7 @@ func (user *User) close() {
 
 	if user.isRunningSimulation() {
 		user.simulation.cancelSimulation <- true
+		user.simulation.setRunningSimulation(false)
 		user.simulation = nil
 	}
 

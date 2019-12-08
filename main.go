@@ -25,12 +25,18 @@ func commands(app *cli.App) {
 					Usage:    "removes logging from output. Add -nl to the end of the command when running",
 					Required: false,
 				},
+				&cli.IntFlag{
+					Name:     "port",
+					Usage:    "sets port",
+					Value:    5000,
+					Required: false,
+				},
 			},
 			Action: func(c *cli.Context) {
 				if c.Bool("nl") {
 					log.SetOutput(ioutil.Discard)
 				}
-				runServer()
+				runServer(c.Int("port"))
 			},
 		},
 		{
