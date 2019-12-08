@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"log"
 	"os"
 )
@@ -18,7 +19,17 @@ func commands(app *cli.App) {
 			Name:    "start-server",
 			Aliases: []string{"start"},
 			Usage:   "Starts the golang server",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:     "nl",
+					Usage:    "removes logging from output. Add -nl to the end of the command when running",
+					Required: false,
+				},
+			},
 			Action: func(c *cli.Context) {
+				if c.Bool("nl") {
+					log.SetOutput(ioutil.Discard)
+				}
 				runServer()
 			},
 		},

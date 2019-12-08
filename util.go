@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
+	"github.com/gonum/stat/distuv"
+	distuv2 "gonum.org/v1/gonum/stat/distuv"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -66,4 +68,43 @@ func RightPad2Len(s string, padStr string, overallLen int) string {
 	var padCountInt = 1 + ((overallLen - len(padStr)) / len(padStr))
 	var retStr = s + strings.Repeat(padStr, padCountInt)
 	return retStr[:overallLen]
+}
+
+func getExpRand(rate float64, cutoff float64, removeUnlikelyEvents bool) float64 {
+	var exponential = distuv.Exponential{Rate: rate}
+
+	movementTime := exponential.Rand()
+	if !removeUnlikelyEvents {
+		return movementTime
+	}
+
+	iterations := 0
+	for !(exponential.Prob(movementTime) < cutoff) {
+		movementTime = exponential.Rand()
+		iterations += 1
+		if iterations > unlikelyIterations {
+			return exponential.Mean()
+		}
+	}
+
+	return movementTime
+}
+
+func getPoissonRand(lambda float64, cutoff float64, removeUnlikelyEvents bool) float64 {
+	var poisson = distuv2.Poisson{Lambda: lambda}
+
+	movementTime := poisson.Rand()
+	if !removeUnlikelyEvents {
+		return movementTime
+	}
+	iterations := 0
+
+	for !(poisson.Prob(movementTime) < cutoff) {
+		movementTime = poisson.Rand()
+		iterations += 1
+		if iterations > unlikelyIterations {
+			return poisson.Mean()
+		}
+	}
+	return movementTime
 }

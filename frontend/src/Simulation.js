@@ -1,28 +1,42 @@
 import React, {Component} from 'react';
 
-class SimulationCar extends Component {
+class Car extends Component {
+    render() {
+        return (
+            <div>
+                🚗
+                <div className={"car title"}>{this.props.details.name}</div>
+                {this.props.displayCarDetails && <div className={"cardetails"}>
+                    <div className={"speed"}>Speed: {this.props.details.speed}</div>
+                    <div className={"waitingTime"}>Waiting Time: {this.props.details.waitingTime}</div>
+                </div>}
+            </div>
+        );
+    }
+}
+
+class SimulationCars extends Component {
     render() {
         var items = [];
         var value;
+        // console.log(this.props.car);
         for (var key in this.props.car) {
             value = this.props.car[key];
-            items.push({"name": key})
+            items.push({"name": key, "waitingTime": value.WaitingTime, "speed": value.Speed})
         }
 
         if (this.props.locationState === 0) {
             return <td className={"empty"}>
-                <div></div>
+                <div/>
             </td>
         }
 
         if (this.props.locationState === 3) {
-            // if(items.length === 0) {
-            //     return <td className={"parking"}><div></div></td>
-            // }
             return <td className={"parking"}>
                 <td>
                     <div>
-                        {items.map(item => <div>🚗{item.name}</div>)}
+                        {items.map(item => <div><Car details={item} displayCarDetails={this.props.displayCarDetails}/>
+                        </div>)}
                     </div>
                 </td>
             </td>
@@ -30,20 +44,23 @@ class SimulationCar extends Component {
 
         if (this.props.locationState === 4) {
             return <td>
-                        <div>
-                            🔥
-                            🔥
-                            {items.map(item => <div>🔥🚗{item.name}🔥</div>)}
-                            🔥
-                            🔥
-                        </div>
+                <div>
+                    🔥
+                    🔥
+                    {items.map(item => <div>🔥<Car details={item} displayCarDetails={this.props.displayCarDetails}/>🔥
+                    </div>)}
+                    🔥
+                    🔥
+                </div>
             </td>
         }
+
         return (
             <td>
                 <div>
 
-                    {items.map(item => <div>🚗{item.name}</div>)}
+                    {items.map(item => <div><Car details={item} displayCarDetails={this.props.displayCarDetails}/>
+                    </div>)}
                 </div>
             </td>
         );
@@ -61,7 +78,8 @@ class Simulation extends Component {
             {this.props.data.map(row => {
                 return <tr>
                     {row.map(item => {
-                        return <SimulationCar locationState={item.state} car={item.cars}/>
+                        return <SimulationCars locationState={item.state} car={item.cars}
+                                               displayCarDetails={this.props.displayCarDetails}/>
                     })}
                 </tr>
             })}

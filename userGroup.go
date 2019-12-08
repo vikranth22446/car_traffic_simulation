@@ -330,6 +330,18 @@ func startSimulationEvent(conn *websocket.Conn, data interface{}) {
 		config.slowDownSpeed = slowDownSpeed
 	}
 
+	if removeUnlikelyEvents, ok := m["removeUnlikelyEvents"].(bool); ok {
+		config.removeUnlikelyEvents = removeUnlikelyEvents
+	}
+
+	if unlikelyCutoff, ok := m["unlikelyCutoff"].(string); ok {
+		unlikelyCutoff, err := strconv.ParseFloat(unlikelyCutoff, 64)
+		if err != nil {
+			return
+		}
+		config.unlikelyCutoff = unlikelyCutoff
+	}
+
 	user.runSimulation(config)
 
 }

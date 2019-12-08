@@ -42,6 +42,28 @@ function CarDistributionType(props) {
     /></div>
 }
 
+function SimulationDisplayForm(props) {
+    const {register, handleSubmit, setValue} = useForm({
+        defaultValues: {
+            'displayCarDetails': true
+        }
+    });
+    return <div>
+        <br/>
+        <h3> Simulation Display Details:</h3>
+        displayCarDetails:
+        <RHFInput
+            onChange={handleSubmit(props.onSubmit)}
+            as={<Checkbox/>}
+            name="displayCarDetails"
+            type="checkbox"
+            register={register}
+            setValue={setValue}
+        />
+        <br/>
+    </div>
+}
+
 function SimulationForm(props) {
     const {register, handleSubmit, setValue} = useForm({
         defaultValues: {
@@ -73,14 +95,17 @@ function SimulationForm(props) {
             'crossWalkEnabled': false,
             'pedestrianDeathAccidentProb': 0.5,
             'probEnteringIntersection': 1,
-            'intersectionAccidentProb': 0.5,
+            'intersectionAccidentProb': 0.1,
             'accidentScaling': true,
-            'slowDownSpeed': 1
+            'slowDownSpeed': 1,
+            'removeUnlikelyEvents': true,
+            'unlikelyCutoff': 0.05
         }
     }); // initialise the hook
 
     return (
         <div>
+            <h3>Please Input Parameters for the simulation</h3>
             {/*{props.simulating && <button onClick={props.cancelSimulation}>Stop Simulation</button>}*/}
             <form onSubmit={handleSubmit(props.onSubmit)} className={"dataform"}>
                 <input type="submit" disabled={props.simulating} value={"Submit"}/>
@@ -216,9 +241,24 @@ function SimulationForm(props) {
                                       inputRef={register} step="any"/> {/* register an input */}
                 <br/>
 
+                remove Unlikely events:
+                <RHFInput
+                    as={<Checkbox/>}
+                    name="removeUnlikelyEvents"
+                    type="checkbox"
+                    register={register}
+                    setValue={setValue}
+                />
+                <br/>
+
+                Unlikely Cutoff:
+                <Input type={"text"} name="unlikelyCutoff"
+                       inputRef={register} step="any"/> {/* register an input */}
+                <br/>
+
+
                 {/*<input type="submit" disabled={props.simulating} value={"Submit"}/>*/}
             </form>
-
         </div>
     )
 }
@@ -239,6 +279,7 @@ class SimulationHandler extends Component {
             simulating: false,
             simulationData: new Array([]),
             clientId: null,
+            displayCarDetails: true
         }
     }
 
@@ -290,7 +331,7 @@ class SimulationHandler extends Component {
     updateSimulationState = (data) => {
         console.log("update simulation event");
         this.setState({simulating: true, simulationData: data.locations});
-        console.log(data.locations)
+        // console.log(data.locations)
     };
 
     completedSimulation = () => {
@@ -312,16 +353,23 @@ class SimulationHandler extends Component {
         });
     };
 
+    changeDisplayDetails = (event) => {
+        console.log("set car details to", event.displayCarDetails)
+        this.setState({
+            displayCarDetails: event.displayCarDetails
+        })
+    }
 
     render() {
         return (
             <div className="App">
                 {this.state.simulating &&
-                <Simulation simulating={this.state.simulating} data={this.state.simulationData}/>}
+                <Simulation simulating={this.state.simulating} data={this.state.simulationData}
+                            displayCarDetails={this.state.displayCarDetails}/>}
                 <div>Running Simulation: {this.state.simulating.toString()}</div>
-                <div>Please Input Parameters for the simulation</div>
                 <SimulationForm onSubmit={this.startSimulation} simulating={this.state.simulating}
                                 cancelSimulation={this.cancelSimulation}/>
+                <SimulationDisplayForm onSubmit={this.changeDisplayDetails}/>
             </div>
         );
     }
